@@ -1,0 +1,32 @@
+[project]
+name = "growl"
+version = "0.0.1"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "h5py>=3.16.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.1",
+    "pandas>=3.0.3",
+    "pint>=0.25.3",
+    "uncertainties>=3.2.3",
+]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+    "pandas-stubs>=3.0.3.260530",
+    "pre-commit>=4.6.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff.lint]
+select = ["I"]
+
+[tool.pyright]
+venv = ".venv"
+venvPath = "."

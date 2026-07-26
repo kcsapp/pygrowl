@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.22
+    hooks:
+      - id: ruff-check
+        args: [--fix] # Enable automatic fixes
+      - id: ruff-format
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.411
+    hooks:
+      - id: pyright
