@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 parse-compas-options = "growl.tools.parse_compas_options:main"
+plot-popsynth = "growl.tools.plot_popsynth:main"
 
 [dependency-groups]
 dev = [

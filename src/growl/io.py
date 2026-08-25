@@ -1,10 +1,10 @@
 from functools import reduce
-from typing import Iterable, Literal
+from typing import Iterable
 
 import h5py
 import pandas as pd
 
-from .constants import COLUMN_DATA, StateEnum
+from .constants import COLUMN_DATA, StateColumn, StateEnum
 
 
 def load(filename: str, columns: Iterable[str] | None = None) -> pd.DataFrame:
@@ -60,12 +60,9 @@ def convert(df: pd.DataFrame, columns: Iterable[str] | None = None) -> pd.DataFr
     return cdf
 
 
-StateColumnT = Literal["stellar_type_1", "stellar_type_2", "record_type", "mt_history"]
-
-
 def select_events(
     df: pd.DataFrame,
-    columns: StateColumnT | Iterable[StateColumnT],
+    columns: StateColumn | Iterable[StateColumn],
     lsuffix: str = "_i",
     rsuffix: str = "_f",
 ) -> pd.DataFrame:

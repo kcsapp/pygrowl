@@ -2,7 +2,7 @@ import enum
 import re
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pint
@@ -229,18 +229,10 @@ COLUMN_DATA: list[MeasurementContext] = [
         MassTransferTimescale,
         state,
     ),
-    MeasurementContext(
-        "Mass_0(1)", "Effective initial mass ({star})", np.float64, Msol
-    ),
-    MeasurementContext(
-        "Mass_0(2)", "Effective initial mass ({star})", np.float64, Msol
-    ),
-    MeasurementContext(
-        "Mass_CO_Core(1)", "Carbon-Oxygen core mass ({star})", np.float64, Msol
-    ),
-    MeasurementContext(
-        "Mass_CO_Core(2)", "Carbon-Oxygen core mass ({star})", np.float64, Msol
-    ),
+    MeasurementContext("Mass_0(1)", "Effective initial mass ({star})", np.float64, Msol),
+    MeasurementContext("Mass_0(2)", "Effective initial mass ({star})", np.float64, Msol),
+    MeasurementContext("Mass_CO_Core(1)", "Carbon-Oxygen core mass ({star})", np.float64, Msol),
+    MeasurementContext("Mass_CO_Core(2)", "Carbon-Oxygen core mass ({star})", np.float64, Msol),
     MeasurementContext("Mass_Core(1)", "Core mass ({star})", np.float64, Msol),
     MeasurementContext("Mass_Core(2)", "Core mass ({star})", np.float64, Msol),
     MeasurementContext(
@@ -255,18 +247,10 @@ COLUMN_DATA: list[MeasurementContext] = [
         np.float64,
         Msol,
     ),
-    MeasurementContext(
-        "Mass_He_Core(1)", "Helium core mass ({star})", np.float64, Msol
-    ),
-    MeasurementContext(
-        "Mass_He_Core(2)", "Helium core mass ({star})", np.float64, Msol
-    ),
-    MeasurementContext(
-        "Mdot(1)", "Mass loss rate in winds ({star})", np.float64, Msol / yr
-    ),
-    MeasurementContext(
-        "Mdot(2)", "Mass loss rate in winds ({star})", np.float64, Msol / yr
-    ),
+    MeasurementContext("Mass_He_Core(1)", "Helium core mass ({star})", np.float64, Msol),
+    MeasurementContext("Mass_He_Core(2)", "Helium core mass ({star})", np.float64, Msol),
+    MeasurementContext("Mdot(1)", "Mass loss rate in winds ({star})", np.float64, Msol / yr),
+    MeasurementContext("Mdot(2)", "Mass loss rate in winds ({star})", np.float64, Msol / yr),
     MeasurementContext(
         "Metallicity@ZAMS(1)", "Metallicity of {star} at ZAMS", np.float64, metallicity
     ),
@@ -275,12 +259,8 @@ COLUMN_DATA: list[MeasurementContext] = [
     ),
     MeasurementContext("Omega(1)", "Angular frequency ({star})", np.float64, Hz),
     MeasurementContext("Omega(2)", "Angular frequency ({star})", np.float64, Hz),
-    MeasurementContext(
-        "Omega_Break(1)", "Break-up angular frequency ({star})", np.float64, Hz
-    ),
-    MeasurementContext(
-        "Omega_Break(2)", "Break-up angular frequency ({star})", np.float64, Hz
-    ),
+    MeasurementContext("Omega_Break(1)", "Break-up angular frequency ({star})", np.float64, Hz),
+    MeasurementContext("Omega_Break(2)", "Break-up angular frequency ({star})", np.float64, Hz),
     MeasurementContext(
         "Pulsar_Birth_Period(1)",
         "Pulsar spin period at birth of the {star}",
@@ -329,12 +309,8 @@ COLUMN_DATA: list[MeasurementContext] = [
         np.float64,
         rad,
     ),
-    MeasurementContext(
-        "Pulsar_Spin_Period(1)", "Pulsar spin period of the {star}", np.float64, s
-    ),
-    MeasurementContext(
-        "Pulsar_Spin_Period(2)", "Pulsar spin period of the {star}", np.float64, s
-    ),
+    MeasurementContext("Pulsar_Spin_Period(1)", "Pulsar spin period of the {star}", np.float64, s),
+    MeasurementContext("Pulsar_Spin_Period(2)", "Pulsar spin period of the {star}", np.float64, s),
     MeasurementContext("Radius(1)", "Radius of the {star}", np.float64, Rsol),
     MeasurementContext("Radius(2)", "Radius of the {star}", np.float64, Rsol),
     MeasurementContext(
@@ -343,12 +319,8 @@ COLUMN_DATA: list[MeasurementContext] = [
         BinarySystemState,
         state,
     ),
-    MeasurementContext(
-        "RocheLobe(1)", "Roche radius at peripasis of the {star}", np.float64, Rsol
-    ),
-    MeasurementContext(
-        "RocheLobe(2)", "Roche radius at peripasis of the {star}", np.float64, Rsol
-    ),
+    MeasurementContext("RocheLobe(1)", "Roche radius at peripasis of the {star}", np.float64, Rsol),
+    MeasurementContext("RocheLobe(2)", "Roche radius at peripasis of the {star}", np.float64, Rsol),
     MeasurementContext("SEED", "Random seed value", np.uint64, state),
     MeasurementContext(
         "SemiMajorAxis", "Semi-major axis of the orbit of the {star}", np.float64, Rsol
@@ -391,12 +363,8 @@ COLUMN_DATA: list[MeasurementContext] = [
         np.float64,
         Myr,
     ),
-    MeasurementContext(
-        "Tau_Thermal(1)", "Thermal timescale of {star}", np.float64, Myr
-    ),
-    MeasurementContext(
-        "Tau_Thermal(2)", "Thermal timescale of {star}", np.float64, Myr
-    ),
+    MeasurementContext("Tau_Thermal(1)", "Thermal timescale of {star}", np.float64, Myr),
+    MeasurementContext("Tau_Thermal(2)", "Thermal timescale of {star}", np.float64, Myr),
     MeasurementContext("Teff(1)", "Effective temperature of {star}", np.float64, K),
     MeasurementContext("Teff(2)", "Effective temperature of {star}", np.float64, K),
     MeasurementContext("Time", "Total time since ZAMS", np.float64, Myr),
@@ -480,3 +448,5 @@ COLUMN_DATA: list[MeasurementContext] = [
         Msol,
     ),
 ]
+
+StateColumn = Literal["stellar_type_1", "stellar_type_2", "record_type", "mt_history"]
