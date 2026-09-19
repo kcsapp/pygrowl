@@ -1,7 +1,7 @@
 import enum
 import re
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cache, cached_property
 from typing import Any, Literal
 
 import polars as pl
@@ -39,6 +39,7 @@ class StateEnum(enum.Enum):
         return next((v for v in cls if v.state == int(value)))
 
     @classmethod
+    @cache
     def pl_enum(cls) -> pl.Enum:
         return pl.Enum([ev.name for ev in cls])
 

@@ -46,21 +46,21 @@ def convert(df: pl.LazyFrame, columns: Iterable[str] | None = None) -> pl.LazyFr
             lambda c: c.name in columns or c.colname in columns, convert_column_data
         )
 
-    astype_columns, enum_columns = {}, {}
+    cast_columns, enum_columns = [], {}
     for c in convert_column_data:
         if isinstance(c.type, type) and issubclass(c.type, StateEnum):
             enum_columns[c.colname] = {v.state: v for v in c.type}
         else:
-            astype_columns[c.colname] = c.type
+            cast_columns.append(pl.col(c.colname).cast(c.type))
 
-    cdf = df.with_columns(pl.col(c.colname).cast(c.type) for c in convert_column_data)
+    cdf = df.with_columns(*cast_columns)
     for name, enum_map in enum_columns.items():
         cdf = cdf.with_columns(
             pl.coalesce(
                 *(
                     pl.when(pl.col(name) == state)
-                    .then(pl.lit(enum))
-                    .otherwise(pl.lit(None, dtype=enum.pl_enum))
+                    .then(pl.lit(enum.name, dtype=enum.pl_enum()))
+                    .otherwise(pl.lit(None, dtype=enum.pl_enum()))
                     for state, enum in enum_map.items()
                 )
             ).alias(name)
@@ -82,7 +82,7 @@ def select_events(
     Args:
         df (pl.LazyFrame): The polars dataframe to filter
         columns (Iterable[StateColumnT]): The columns to use for identifying events
-        lsuffix (str, optional): The suffix representing the final state
+        suffix (str, optional): The suffix representing the final state
 
     Returns:
         pl.LazyFrame: A polars dataframe representing state-changing events
@@ -91,10 +91,9 @@ def select_events(
         columns = [columns]
 
     ddf = df.with_row_index("index").join(
-        df.shift(-1)
+        df.select(pl.all().shift(-1))
         .with_row_index("index")
         .fill_nan(-1)
-        .fill_null(-1)
         .cast(df.schema, strict=False),
         how="outer",
         on="index",
