@@ -41,7 +41,7 @@ class StateEnum(enum.Enum):
     @classmethod
     @cache
     def pl_enum(cls) -> pl.Enum:
-        return pl.Enum([ev.name for ev in cls])
+        return pl.Enum([ev.value[0] for ev in cls])
 
     @cached_property
     def state(self) -> int:

@@ -95,7 +95,7 @@ def select_events(
         .with_row_index("index")
         .fill_nan(-1)
         .cast(df.schema, strict=False),
-        how="outer",
+        how="full",
         on="index",
         suffix=suffix,
     )
