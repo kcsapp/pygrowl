@@ -5,31 +5,31 @@ from functools import cached_property
 from typing import Any, Literal
 
 import numpy as np
-import pint
+from pint import get_application_registry
 
 ### Useful units ###
-ur = pint.UnitRegistry()
+ur = get_application_registry()
 ur.define("ratio = [fraction]")
 ur.define("state = [state]")
 ur.define("@alias ratio = metallicity")
-ur.define("percent = 100 * ratio = pct = %")
+# ur.define("Myr = 1e6 * yr")
 ratio = ur.ratio
 state = ur.state
 metallicity = ur.metallicity
-
-Msol = (1.988475e30 * ur.kilogram).plus_minus(0.000092e30)  # type: ignore
-Rsol = (6.9566e8 * ur.meter).plus_minus(0.0014e8)  # type: ignore
-Lsol = 3.828e26 * ur.watt
-Zsol = 0.014 * ur.metallicity
 
 K = ur.kelvin
 s = ur.second
 rad = ur.rad
 Hz = ur.hertz
 yr = ur.year
-Myr = 1e6 * yr
+Myr = 1e6 * ur.yr
 AU = ur.au
 Gauss = ur.gauss
+
+Msol = ur.Quantity(1.988475e30, ur.kilogram).plus_minus(0.000092e30)
+Rsol = ur.Quantity(6.9566e8, ur.meter).plus_minus(0.0014e8)
+Lsol = ur.Quantity(3.828e26, ur.watt)
+Zsol = ur.Quantity(0.014, ur.metallicity)
 
 
 ### State defintions ###
@@ -89,7 +89,10 @@ class BinarySystemState(StateEnum):
     PostMassResolutionMerger = (15, "a merger after mass resolution")
     PreStellarTimestep = (
         16,
-        "before a stellar timestep (i.e. the evolution of the constituent stars for a single timestep)",
+        (
+            "before a stellar timestep (i.e. the evolution of the constituent stars "
+            "for a single timestep)"
+        ),
     )
 
 
@@ -140,7 +143,7 @@ class MeasurementContext:
     name: str
     desc: str
     type: type
-    unit: pint.Unit
+    unit: ur.Unit
 
     @cached_property
     def index(self) -> int | None:
@@ -203,7 +206,10 @@ COLUMN_DATA: list[MeasurementContext] = [
     ),
     MeasurementContext(
         "Eccentricity",
-        "Deviation from circularity of the orbital of the {star}: the ratio of the center-to-focus distance to the semi-major axis",
+        (
+            "Deviation from circularity of the orbital of the {star}: the ratio of the "
+            "center-to-focus distance to the semi-major axis"
+        ),
         np.float64,
         ratio,
     ),
@@ -225,7 +231,10 @@ COLUMN_DATA: list[MeasurementContext] = [
     ),
     MeasurementContext(
         "MassTransferTimescale",
-        "Mass transfer timescale, as indicated by the type of mass transfer (nuclear, thermal, common-envelope)",
+        (
+            "Mass transfer timescale, as indicated by the type of mass transfer (nuclear, thermal, "
+            "common-envelope)"
+        ),
         MassTransferTimescale,
         state,
     ),

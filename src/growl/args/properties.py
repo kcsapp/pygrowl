@@ -1,16 +1,23 @@
 from collections import defaultdict
 from pathlib import Path
 from types import UnionType
-from typing import Any, Iterable, Literal, Mapping, TypeVar, Union, get_args, get_origin
+from typing import (
+    Any,
+    Iterable,
+    Literal,
+    Mapping,
+    Self,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+)
 
 import attrs
 from attrs.converters import pipe
 
 from .converters import arg_converter
 from .options import CompasArgCollection
-
-T = TypeVar("T")
-
 
 _UNION_TYPES = {Union, UnionType}
 
@@ -64,6 +71,9 @@ def validate_input_type(cls: type, attribute: attrs.Attribute, value: Any):
     )
 
 
+T = TypeVar("T")
+
+
 def convert_input_iterables(
     value: T | Iterable[T] | None, field: attrs.Attribute
 ) -> T | CompasArgCollection[T] | None:
@@ -105,7 +115,7 @@ def field_value_to_arg(value: Any, field: attrs.Attribute) -> str | None:
         if instance_type is Literal and value in get_args(attr_type):
             return arg_converter[type(value)].to_arg(value)
 
-        if isinstance(value, (str, bytes)) and not instance_type in (str, bytes):
+        if isinstance(value, (str, bytes)) and instance_type not in (str, bytes):
             continue
 
         if isinstance(value, instance_type):
@@ -156,83 +166,90 @@ def transform_growl_args(_, fields: list[attrs.Attribute]):
     return new_fields
 
 
-def argv_to_growl_options(cls: type[T], argv: list[str]) -> tuple[T, list[str]]:
-    """Convert an argv list representing a growl-args class into a class instance.
+### ------------------------------------------------------------- ###
+### Definitions used to construct GrowlArgs configuration classes ###
+### ------------------------------------------------------------- ###
 
-    This function extracts arguments and associated values into a dict of mappings from
-    field name to value for all arguments matching a field in the supplied `cls`.
-    It leaves arguments not mapped to a COMPAS argument untouched for downstream parsing,
-    returning them in the second tuple output.
-    """
-    if not (attrs.has(cls) and attrs.fields(cls)):
-        raise TypeError(f"Expected an attrs class with at least one field attribute; got '{cls}'")
-    if next(iter(argv), None) == getattr(cls, "command", "__MISSING__"):
-        argv = argv[1:]
+_MISSING = "__MISSING__"
 
-    option_fields = {f.name: f for f in attrs.fields(cls)}
 
-    kwargs = defaultdict(list)
-    remaining_args = []
-    curr_arg = None
-    for arg in argv:
-        if arg.startswith("-"):
-            arg_name = _flag_to_arg(arg)
-            if arg_name not in option_fields:
-                remaining_args.append(arg)
-                curr_arg = None
+class GrowlArgs(attrs.AttrsInstance):
+    @classmethod
+    def from_argv(cls, argv: list[str]) -> tuple[Self, list[str]]:
+        """Convert an argv list representing a growl-args class into a class instance.
+
+        This function extracts arguments and associated values into a dict of mappings from
+        field name to value for all arguments matching a field in the supplied `cls`.
+        It leaves arguments not mapped to a COMPAS argument untouched for downstream parsing,
+        returning them in the second tuple output.
+        """
+        if not (attrs.has(cls) and attrs.fields(cls)):
+            raise TypeError(
+                f"Expected an attrs class with at least one field attribute; got '{cls}'"
+            )
+        if next(iter(argv), None) == getattr(cls, "command", _MISSING):
+            argv = argv[1:]
+
+        option_fields = {f.name: f for f in attrs.fields(cls)}
+
+        kwargs = defaultdict(list)
+        remaining_args: list[str] = []
+        curr_arg = None
+        for arg in argv:
+            if arg.startswith("-"):
+                arg_name = _flag_to_arg(arg)
+                if arg_name not in option_fields:
+                    remaining_args.append(arg)
+                    curr_arg = None
+                else:
+                    curr_arg = kwargs[option_fields[arg_name]]
+            elif curr_arg is not None:
+                curr_arg.append(arg)
             else:
-                curr_arg = kwargs[option_fields[arg_name]]
-        elif curr_arg is not None:
-            curr_arg.append(arg)
-        else:
-            remaining_args.append(arg)
+                remaining_args.append(arg)
 
-    input_kwargs = {k: " ".join(v) for k, v in kwargs.items()}
-    inst = cls(**{k.name: field_value_from_arg(v, k) for k, v in input_kwargs.items()})
-    return inst, remaining_args
+        input_kwargs = {k: " ".join(v) for k, v in kwargs.items()}
+        inst = cls(**{k.name: field_value_from_arg(v, k) for k, v in input_kwargs.items()})
+        return inst, remaining_args
 
+    def to_argv(self, remove_defaults: bool = False) -> list[str]:
+        """Convert a growl options class to command-line arguments."""
+        argv: list[str] = []
+        growl_command = getattr(type(self), "command", _MISSING)
+        if growl_command != _MISSING:
+            argv.append(growl_command)
 
-def growl_options_to_argv(growl_options: Any, remove_defaults: bool = False) -> list[str]:
-    """Convert a growl options class to command-line arguments."""
-    argv: list[str] = []
-    if hasattr(type(growl_options), "command"):
-        argv.append(growl_options.command)
+        for field in attrs.fields(self):
+            flag = field.metadata.get("flag")
+            if not flag:
+                raise ValueError(f"Argument flag not defined for '{field.name}': {field.metadata=}")
 
-    for field in attrs.fields(growl_options):
-        flag = field.metadata.get("flag")
-        if not flag:
-            raise ValueError(f"Argument flag not defined for '{field.name}': {field.metadata=}")
+            value = getattr(self, field.name)
+            if remove_defaults and value == field.default:
+                continue
 
-        value = getattr(growl_options, field.name)
-        if remove_defaults and value == field.default:
-            continue
+            arg_value = field_value_to_arg(value, field)
+            if arg_value is not None:
+                argv.extend((flag, arg_value))
 
-        arg_value = field_value_to_arg(value, field)
-        if arg_value is not None:
-            argv.extend((flag, arg_value))
+        return argv
 
-    return argv
+    def localize(self, path: str, arg_names: Iterable[str], as_default: bool = False) -> Self:
+        """Ensure the arguments specified are prefixed by the provided path."""
+        changes = {}
+        root_path = Path(path)
+        for name in arg_names:
+            value = getattr(self, name, None)
+            if value:
+                if not value.startswith(path):
+                    changes[name] = str(root_path / value)
+            elif as_default:
+                changes[name] = str(root_path)
 
+        return attrs.evolve(self, **changes) if changes else self
 
-def localize_growl_options(
-    growl_options: T, path: str, arg_names: Iterable[str], as_default: bool = False
-) -> T:
-    """Ensure the arguments specified are prefixed by the provided path."""
-    changes = {}
-    root_path = Path(path)
-    for name in arg_names:
-        value = getattr(growl_options, name, None)
-        if value:
-            if not value.startswith(path):
-                changes[name] = str(root_path / value)
-        elif as_default:
-            changes[name] = str(root_path)
-
-    return attrs.evolve(growl_options, **changes) if changes else growl_options
-
-
-def evolve_growl_options(growl_options: T, **changes: Any) -> T:
-    return attrs.evolve(growl_options, **changes) if changes else growl_options
+    def evolve(self, **changes: Any) -> Self:
+        return attrs.evolve(self, **changes) if changes else self
 
 
 ################################################################################
@@ -242,7 +259,7 @@ def evolve_growl_options(growl_options: T, **changes: Any) -> T:
 ################################################################################
 
 
-def growl_field(
+def GrowlField(
     *,
     description: str | None = None,
     flag: str | None = None,
@@ -260,10 +277,6 @@ def growl_field(
     return attrs.field(metadata=metadata, **kwargs)
 
 
-def growl_args(cls: type) -> type:
+def growl_transform(cls: type[GrowlArgs]) -> type[GrowlArgs]:
     """Transform the decorated class into a frozen-attrs class with from- and to-argv methods."""
-    cls.from_argv = classmethod(argv_to_growl_options)
-    cls.to_argv = growl_options_to_argv
-    cls.localize = localize_growl_options
-    cls.evolve = evolve_growl_options
     return attrs.frozen(field_transformer=transform_growl_args)(cls)

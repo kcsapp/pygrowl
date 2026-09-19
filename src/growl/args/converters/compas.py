@@ -116,10 +116,14 @@ class RangeArgConverter(TypedArgConverter[CompasRange[NumericT]]):
     )
 
     def to_arg(
-        self, value: CompasRange[NumericT], identifier: Literal["r", "range", ""] = "r", **config
+        self,
+        value: CompasRange[NumericT],
+        identifier: Literal["r", "range", ""] = "r",
+        **config,
     ) -> str:
         conv = self._converters[0].to_arg
-        return f"{identifier}[{conv(value.start, **config)},{value.count},{conv(value.increment, **config)}]"
+        start, increment = conv(value.start, **config), conv(value.increment, **config)
+        return f"{identifier}[{start},{value.count},{increment}]"
 
     def from_arg(self, arg: str, **config) -> CompasRange[NumericT]:
         m = self._RANGE_PAT.match(arg)

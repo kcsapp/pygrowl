@@ -6,6 +6,7 @@ image otherwise, and generates the selected plot from the data defined in the
 [onboarding notebook](https://github.com/FloorBroekgaarden/GROWL-catalog-public/blob/main/onboarding_growl/introduction_to_population_synthesis.ipynb).
 """
 
+import logging
 import os
 import sys
 from argparse import ArgumentParser
@@ -16,6 +17,8 @@ import growl.plot as gplt
 from growl.config import CompasOptions
 from growl.constants import StateColumn
 from growl.run import run_compas
+
+logging.basicConfig(level=logging.INFO)
 
 OUTPUT_PREFIX = "BSE_Detailed_Output"
 STANDARD_COLUMNS = [
@@ -57,13 +60,20 @@ FIXED_ARGS = [
 
 def main():
     parser = ArgumentParser(
-        description="Generate and plot binary system evolution with COMPAS - additional arguments are passed as COMPAS parameters and settings."
+        description=(
+            "Generate and plot binary system evolution with COMPAS. Additional arguments are "
+            "passed as COMPAS parameters and settings."
+        )
     )
     parser.add_argument(
-        "--input", default="data/input", help="Input path where COMPAS will find config files"
+        "--input",
+        default="data/input",
+        help="Input path where COMPAS will find config files",
     )
     parser.add_argument(
-        "--output", default="data/logs", help="Output path where COMPAS results will be stored"
+        "--output",
+        default="data/logs",
+        help="Output path where COMPAS results will be stored",
     )
     parser.add_argument(
         "--rundir",

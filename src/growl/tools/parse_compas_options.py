@@ -16,6 +16,15 @@ Each dict has the keys:
 Options whose entry contains a "DEPRECATION NOTICE:" are excluded, since they are
 deprecated aliases that COMPAS intends to remove.
 
+When emitting Python (`-t py`), generated fields are wrapped to respect a
+configurable line length (`--line-length`, default 100), and any `Literal[...]`
+type is always spelled out one member per line, e.g.:
+
+    Literal[
+        "value1",
+        "value2",
+    ]
+
 Usage:
     python parse_compas_options.py [-o output.json]
 """
@@ -24,7 +33,9 @@ import argparse
 import json
 import re
 import sys
+import textwrap
 import urllib.request
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -33,6 +44,30 @@ DOC_URL = (
     "online-docs/pages/User%20guide/Program%20options/"
     "program-options-list-defaults.rst"
 )
+
+PY_SPACE = " " * 4
+
+# Default max line length to respect when generating Python output. Overridable
+# via the `--line-length` CLI flag.
+DEFAULT_LINE_LENGTH = 100
+
+PY_HEADER = """from typing import ClassVar, Literal
+
+from growl.args import (
+    AllowCompasRange,
+    AllowCompasRangeOrSet,
+    AllowCompasSet,
+    AllowCompasVector,
+    GrowlArgs,
+    GrowlField,
+    growl_transform,
+)
+
+
+@growl_transform
+class CompasOptions(GrowlArgs):
+    command: ClassVar[str] = "COMPAS"
+"""
 
 # Matches an option header line, e.g.:
 #   **--eccentricity [ -e ]**
@@ -54,6 +89,18 @@ DEFAULT_RE = re.compile(r"Default\s*(?:[:=]|shows)\s*(.*)")
 # Identify a float
 FLOAT_RE = re.compile(r"^(\d+\.\d+)(?:\s*\\times\s*10\^\{?(\d+)\}?\s*)?")
 
+# Backtick and non-ASCII quotation-mark characters that occasionally turn up in a
+# scraped default value as stray doc-formatting artifacts (e.g. curly quotes from
+# a smart-quotes pass) rather than being part of the actual value.
+STRAY_QUOTE_CHARS_RE = re.compile("[`‘’“”„‚‹›«»]")
+
+
+def clean_default_string(value: str) -> str:
+    """Remove backtick and non-ASCII quotation-mark characters from a raw
+    default-value string."""
+    return STRAY_QUOTE_CHARS_RE.sub("", value)
+
+
 # Sphinx/RST markup we want to strip out of free text so the description reads cleanly
 INLINE_MARKUP_RES = [
     (re.compile(r"\|br\|"), " "),  # explicit line-break markup
@@ -63,6 +110,51 @@ INLINE_MARKUP_RES = [
     (re.compile(r"``([^`]*)``"), r"\1"),  # ``code`` -> code
     (re.compile(r"\*\*([^*]*)\*\*"), r"\1"),  # **bold** -> bold
 ]
+
+
+@dataclass
+class TypeAnnotation:
+    """A minimal, structured representation of a (possibly generic/nested) type
+    annotation, e.g. `float`, `Literal["a", "b"]`, or
+    `AllowCompasSet[Literal["a", "b"]]`.
+
+    Keeping this as a small tree - rather than a pre-formatted string - lets us
+    defer formatting decisions (whether to break onto multiple lines, how far to
+    indent) until we know the configured line length, and lets us guarantee that
+    every `Literal[...]`, wherever it's nested, is always expanded one member per
+    line rather than only when it happens not to fit.
+    """
+
+    head: str
+    args: list["TypeAnnotation"] = field(default_factory=list)
+
+    def contains_literal(self) -> bool:
+        return self.head == "Literal" or any(a.contains_literal() for a in self.args)
+
+    def render_inline(self) -> str:
+        """Render as a single line, e.g. 'AllowCompasSet[Literal["a", "b"]]'."""
+        if not self.args:
+            return self.head
+        return f"{self.head}[{', '.join(a.render_inline() for a in self.args)}]"
+
+    def render(self, indent: str, line_length: int) -> str:
+        """Render this annotation, assuming it starts at `indent`.
+
+        Any subscript that contains a `Literal` is always broken one member per
+        line (however deeply nested); other subscripts are only broken across
+        multiple lines if their inline form would push the line past
+        `line_length`.
+        """
+        if not self.args:
+            return self.head
+
+        inline = self.render_inline()
+        if not self.contains_literal() and len(indent) + len(inline) <= line_length:
+            return inline
+
+        inner_indent = indent + PY_SPACE
+        body = "\n".join(f"{inner_indent}{a.render(inner_indent, line_length)}," for a in self.args)
+        return f"{self.head}[\n{body}\n{indent}]"
 
 
 def fetch_text(url: str = DOC_URL) -> str:
@@ -120,9 +212,9 @@ def supports_vector(description: str) -> tuple[str, bool]:
         return description, False
 
 
-def supports_range(type_annotation: str) -> bool:
+def supports_range(primitive_type: TypeAnnotation) -> bool:
     """Deduce whether an option supports Range values from its type annotation."""
-    return type_annotation in ("int", "float")
+    return not primitive_type.args and primitive_type.head in ("int", "float")
 
 
 def supports_set(flag: str) -> bool:
@@ -147,7 +239,9 @@ def supports_set(flag: str) -> bool:
     )
 
 
-def deduce_type_and_cast(flag: str, options: list[str], default: str | None) -> tuple[str, Any]:
+def deduce_type_and_cast(
+    flag: str, options: list[str], default: str | None
+) -> tuple[TypeAnnotation, Any]:
     """Deduce the type of a field from its default, and handle some special cases.
 
     Using the live documentation is probably not as clear as doing something clever with the
@@ -155,39 +249,42 @@ def deduce_type_and_cast(flag: str, options: list[str], default: str | None) -> 
     """
     if default is None:
         if flag.startswith("--system-snapshot"):
-            return "float", None
-        return "str | None", None
+            return TypeAnnotation("float"), None
+        return TypeAnnotation("str | None"), None
     if m := FLOAT_RE.match(default):
         value, exponent = m.groups()
         fv = float(value)
         if exponent:
             fv *= 10 ** float(exponent)
-        return "float", fv
+        return TypeAnnotation("float"), fv
     if default.startswith("Random number"):
-        return "float | None", None
+        return TypeAnnotation("float | None"), None
     if default.startswith("Current working directory"):
-        return "str", ""
+        return TypeAnnotation("str"), ""
     if "for each annotation" in default:
-        return "str", ""
+        return TypeAnnotation("str"), ""
 
     d = next((w for w in default.split() if w.strip()), default).strip(",")
     if d.lower() in ("true", "false"):
-        return "bool", d.lower() == "true"
+        return TypeAnnotation("bool"), d.lower() == "true"
     if options and d in options:
-        return "Literal[" + ", ".join(f'"{v}"' for v in options) + "]", f'"{d}"'
+        literal = TypeAnnotation("Literal", [TypeAnnotation(f'"{v}"') for v in options])
+        return literal, f'"{d}"'
     if d.isdigit():
-        return "int", int(d)
-    if '""' in d or "’’" in d:
-        return "str", '""'
+        return TypeAnnotation("int"), int(d)
 
-    return "str", f'"{d}"'
+    d = clean_default_string(d)
+    if not d or d == '""':
+        return TypeAnnotation("str"), '""'
+
+    return TypeAnnotation("str"), f'"{d}"'
 
 
 class ParsedOption(NamedTuple):
     name: str
     flag: str
     short_name: str
-    type_annotation: str
+    type_annotation: TypeAnnotation
     description: str
     options: list[str]
     default: Any
@@ -254,7 +351,7 @@ def parse_options(rst_text: str) -> list[ParsedOption]:
         primitive_type, default_value = deduce_type_and_cast(flag, options_list, default_value)
         description, use_vector = supports_vector(description)
         if use_vector:
-            type_annotation = f"AllowCompasVector[{primitive_type}]"
+            type_annotation = TypeAnnotation("AllowCompasVector", [primitive_type])
         else:
             wrapper_names = []
             if supports_range(primitive_type):
@@ -263,7 +360,9 @@ def parse_options(rst_text: str) -> list[ParsedOption]:
                 wrapper_names.append("Set")
 
             if wrapper_names:
-                type_annotation = f"AllowCompas{'Or'.join(wrapper_names)}[{primitive_type}]"
+                type_annotation = TypeAnnotation(
+                    f"AllowCompas{'Or'.join(wrapper_names)}", [primitive_type]
+                )
             else:
                 type_annotation = primitive_type
 
@@ -290,7 +389,13 @@ def parse_options(rst_text: str) -> list[ParsedOption]:
 
 
 def output_as_json(options: list[ParsedOption], output: str | None):
-    text = json.dumps([o._asdict() for o in options], indent=2)
+    dicts = []
+    for option in options:
+        d = option._asdict()
+        d["type_annotation"] = option.type_annotation.render_inline()
+        dicts.append(d)
+
+    text = json.dumps(dicts, indent=2)
     if output:
         with open(output, "w") as f:
             f.write(text)
@@ -299,41 +404,112 @@ def output_as_json(options: list[ParsedOption], output: str | None):
         print(text)
 
 
-PY_HEADER = """from typing import ClassVar, Literal
+def render_field_signature(
+    name: str, type_annotation: TypeAnnotation, indent: str, line_length: int
+) -> str:
+    """Render the `name: Type = GrowlField(` opening of one field.
 
-from growl.args import (
-    AllowCompasRange,
-    AllowCompasRangeOrSet,
-    AllowCompasSet,
-    AllowCompasVector,
-    growl_args,
-    growl_field,
-)
+    The type is kept inline if it fits within `line_length` and doesn't contain
+    a `Literal` (which is always expanded, regardless of length); otherwise it's
+    broken across multiple lines via `TypeAnnotation.render`.
+    """
+    suffix = " = GrowlField("
+    inline_line = f"{indent}{name}: {type_annotation.render_inline()}{suffix}"
+    if not type_annotation.contains_literal() and len(inline_line) <= line_length:
+        return inline_line
 
-
-@growl_args
-class CompasOptions:
-    command: ClassVar[str] = "COMPAS"
-"""
-
-PY_SPACE = " " * 4
+    rendered_type = type_annotation.render(indent, line_length)
+    return f"{indent}{name}: {rendered_type}{suffix}"
 
 
-def output_as_python(options: list[ParsedOption], output: str | None):
+def _wrap_string_kwarg(
+    key: str,
+    quoted_body: str,
+    prefix: str,
+    indent: str,
+    line_length: int,
+    *,
+    break_on_hyphens: bool = True,
+    drop_whitespace: bool = True,
+) -> str:
+    """Render `key=<prefix>"<quoted_body>",` at `indent`, splitting the string
+    literal into several adjacent (auto-concatenated) literals if it would
+    otherwise exceed `line_length`.
+    """
+    single_line = f'{indent}{key}={prefix}"{quoted_body}",'
+    if len(single_line) <= line_length:
+        return single_line
+
+    inner_indent = indent + PY_SPACE
+    available = max(line_length - len(inner_indent) - len(prefix) - 2, 20)  # 2 = quote chars
+    chunks = textwrap.wrap(
+        quoted_body,
+        width=available,
+        break_on_hyphens=break_on_hyphens,
+        drop_whitespace=drop_whitespace,
+    ) or [""]
+    body = "\n".join(f'{inner_indent}{prefix}"{chunk}"' for chunk in chunks)
+    return f"{indent}{key}=(\n{body}\n{indent}),"
+
+
+def format_description_kwarg(description: str, indent: str, line_length: int) -> str:
+    escaped = description.replace('"', r"\"")
+    # Never break on a hyphen (a split "well" + "-known" -> "well-\nknown" would
+    # silently change the text), and keep any trailing space a wrapped line
+    # naturally ends with, since dropping it would glue two words together once
+    # the adjacent string literals are concatenated back into one string.
+    return _wrap_string_kwarg(
+        "description",
+        escaped,
+        "r",
+        indent,
+        line_length,
+        break_on_hyphens=False,
+        drop_whitespace=False,
+    )
+
+
+def format_default_kwarg(default: Any, indent: str, line_length: int) -> str:
+    line = f"{indent}default={default!s},"
+    if len(line) <= line_length:
+        return line
+
+    # `default` is only ever a number, bool, or a short quoted string in
+    # practice, so this is a defensive fallback rather than something expected
+    # to trigger often; wrap it the same way as `description` when it's a
+    # quoted string, otherwise just leave the (already short) literal as-is.
+    body = str(default)
+    if body.startswith('"') and body.endswith('"'):
+        return _wrap_string_kwarg("default", body[1:-1], "", indent, line_length)
+    return line
+
+
+def build_field(option: ParsedOption, line_length: int) -> str:
+    """Render one `GrowlField(...)` class attribute, respecting `line_length`."""
+    name_indent = PY_SPACE
+    body_indent = PY_SPACE * 2
+
+    signature = render_field_signature(
+        option.name, option.type_annotation, name_indent, line_length
+    )
+
+    kwarg_lines = [
+        format_description_kwarg(option.description, body_indent, line_length),
+        format_default_kwarg(option.default, body_indent, line_length),
+    ]
+    if any(c.isupper() for c in option.flag):
+        kwarg_lines.append(f'{body_indent}flag="{option.flag}",')
+
+    body = "\n".join(kwarg_lines)
+    return f"{signature}\n{body}\n{PY_SPACE})"
+
+
+def output_as_python(
+    options: list[ParsedOption], output: str | None, line_length: int = DEFAULT_LINE_LENGTH
+):
     segments = [PY_HEADER]
     for option in options:
-        components = [
-            f'description=r"{option.description.replace('"', r"\"")}"',
-            f"default={option.default!s}",
-        ]
-        if any(c.isupper() for c in option.flag):
-            components.append(f'flag="{option.flag}"')
-
-        contents = "\n".join(f"{PY_SPACE * 2}{c}," for c in components)
-        field = (
-            f"{PY_SPACE}{option.name}: {option.type_annotation} = growl_field(\n{contents}\n    )"
-        )
-        segments.append(field)
+        segments.append(build_field(option, line_length))
 
     text = "\n".join(segments) + "\n"
     if output:
@@ -360,6 +536,13 @@ def main():
         help="Output format to write; JSON or a python file containing the class `CompasOptions`",
     )
     parser.add_argument(
+        "-l",
+        "--line-length",
+        type=int,
+        default=DEFAULT_LINE_LENGTH,
+        help=f"Max line length in generated Python output (default: {DEFAULT_LINE_LENGTH})",
+    )
+    parser.add_argument(
         "--url", default=DOC_URL, help="Override the URL of the .rst source document"
     )
     args = parser.parse_args()
@@ -370,7 +553,7 @@ def main():
     if args.output_type == "json":
         output_as_json(options, args.output_file)
     elif args.output_type == "py":
-        output_as_python(options, args.output_file)
+        output_as_python(options, args.output_file, args.line_length)
 
 
 if __name__ == "__main__":

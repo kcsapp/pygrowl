@@ -44,6 +44,7 @@ def run_compas_binary(
 
     # Prepare the command to run inside the container
     cmd = localized_options.to_argv(remove_defaults=True)
+    logger.info(f"Running command locally: '{' '.join(cmd)}'")
 
     # Run the command
     cp = sp.run(cmd, capture_output=True, check=True)
@@ -61,12 +62,16 @@ def run_compas_docker(
 
     Mimics this docker run command:
 
-    docker run --rm -it -v $PWD/input:/app/input -v $PWD/logs:/app/logs teamcompas/compas compas {args}
+    ```sh
+    docker run --rm -it -v $PWD/input:/app/input -v $PWD/logs:/app/logs \
+        teamcompas/compas compas {args}
+    ```
 
     Args:
         input_dir (str, optional) : Name of the input directory (default: "data/input")
         logs_dir (str, optional): Name of the logs directory (default: "data/logs")
-        args (MutableMapping[str, Any] | None, optional): Arguments to pass to the command (default: None)
+        args (MutableMapping[str, Any] | None, optional): Arguments to pass to the command 
+            (default: None)
         repo (str, optional): Docker image repository to use (default: "teamcompas/compas")
         tag (str | None, optional): Image tag from the above repository to use (default: "latest")
 
@@ -103,6 +108,7 @@ def run_compas_docker(
 
     # Prepare the command to run inside the container
     cmd = localized_options.to_argv(remove_defaults=True)
+    logger.info(f"Running command in docker: '{' '.join(cmd)}'")
 
     # Run the container
     container: bytes = client.containers.run(

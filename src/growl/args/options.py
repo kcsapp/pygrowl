@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Any, Iterable, Iterator, Protocol, Self, TypeAlias, runtime_checkable
+from typing import Iterable, Iterator, Protocol, Self, TypeVar, runtime_checkable
 
 import attrs
 
@@ -7,15 +7,15 @@ from .utils import ItemT, NumericT, interpret_as_range
 
 _FLOAT_PRECISION = 9
 
+ItemT_co = TypeVar("ItemT_co", covariant=True)
+
 
 @runtime_checkable
-class CompasArgCollection(Protocol):
-    def __class_getitem__(cls, item: Any, /) -> Any: ...
-
+class CompasArgCollection(Protocol[ItemT_co]):
     @classmethod
     def from_iterable(cls, iterable: Iterable) -> Self: ...
 
-    def __iter__(self) -> Iterator: ...
+    def __iter__(self) -> Iterator[ItemT_co]: ...
 
 
 @attrs.define(frozen=True)
@@ -57,7 +57,9 @@ class CompasRange(Iterable[NumericT]):
     @classmethod
     def from_slice(cls, sl: slice):
         return CompasRange(
-            start=sl.start, count=int((sl.stop - sl.start) // sl.step), increment=sl.step
+            start=sl.start,
+            count=int((sl.stop - sl.start) // sl.step),
+            increment=sl.step,
         )
 
     @classmethod
@@ -78,5 +80,5 @@ class CompasRange(Iterable[NumericT]):
         value, remaining = copy(self.start), self.count
         while remaining != 0:
             yield value
-            value += self.increment
+            value = value + self.increment
             remaining -= 1

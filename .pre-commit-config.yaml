@@ -6,12 +6,15 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.22
+    rev: v0.16.8
     hooks:
       - id: ruff-check
         args: [--fix] # Enable automatic fixes
       - id: ruff-format
-  - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.411
+  - repo: https://github.com/facebook/pyrefly-pre-commit
+    rev: 1.4.0.dev1
     hooks:
-      - id: pyright
+      - id: pyrefly-check
+        name: Pyrefly (type checking)
+        pass_filenames: false
+        language: system
