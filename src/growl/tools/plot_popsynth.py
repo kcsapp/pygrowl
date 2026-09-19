@@ -57,13 +57,20 @@ FIXED_ARGS = [
 
 def main():
     parser = ArgumentParser(
-        description="Generate and plot binary system evolution with COMPAS - additional arguments are passed as COMPAS parameters and settings."
+        description=(
+            "Generate and plot binary system evolution with COMPAS. Additional arguments are "
+            "passed as COMPAS parameters and settings."
+        )
     )
     parser.add_argument(
-        "--input", default="data/input", help="Input path where COMPAS will find config files"
+        "--input",
+        default="data/input",
+        help="Input path where COMPAS will find config files",
     )
     parser.add_argument(
-        "--output", default="data/logs", help="Output path where COMPAS results will be stored"
+        "--output",
+        default="data/logs",
+        help="Output path where COMPAS results will be stored",
     )
     parser.add_argument(
         "--rundir",

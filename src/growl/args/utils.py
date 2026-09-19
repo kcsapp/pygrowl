@@ -1,10 +1,12 @@
 from typing import Iterable, TypeVar
 
-ItemT = TypeVar("ItemT")
-NumericT = TypeVar("NumericT", int, float)
+ItemT_co = TypeVar("ItemT_co", covariant=True)
+NumericT_co = TypeVar("NumericT_co", int, float, covariant=True)
 
 
-def interpret_as_range(iterable: Iterable[NumericT]) -> tuple[NumericT, int, NumericT]:
+def interpret_as_range(
+    iterable: Iterable[NumericT_co],
+) -> tuple[NumericT_co, int, NumericT_co]:
     """Deduce a range which most closely resembles this iterable.
 
     This uses an algorithm which attempts to interpret any iterable collection of numeric values
@@ -13,11 +15,11 @@ def interpret_as_range(iterable: Iterable[NumericT]) -> tuple[NumericT, int, Num
     increment.
 
     Args:
-        iterable (Iterable[NumericT]): The iterable to interpret as a range
+        iterable (Iterable[NumericT_co]): The iterable to interpret as a range
 
     Returns:
-        tuple[NumericT, int, NumericT]: the starting value, number of values, and increment defining
-            the deduced range
+        tuple[NumericT_co, int, NumericT_co]: the starting value, number of values, and increment
+            defining the deduced range
 
     Raises:
         StopIteration: if the iterable has less than 2 entries
@@ -36,7 +38,7 @@ def interpret_as_range(iterable: Iterable[NumericT]) -> tuple[NumericT, int, Num
             # min_interval = |past_item - rng_min|, so if rng_min becomes curr_item, we update
             # it to |past_item - curr_item| = |past_item - rng_min| + |curr_item - rng_min|,
             # increacing the past interval by the gap between its minimum and the new minimum
-            min_interval += interval
+            min_interval = min_interval + interval
             min_interval = min(min_interval, interval)
 
             rng_min = item

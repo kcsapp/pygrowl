@@ -28,11 +28,31 @@ C1, C2, CSYS = "#C1272D", "#0B5FA5", "#222222"
 def plot_stellar_masses(df: pd.DataFrame, events: pd.DataFrame):
     _, ax = plt.subplots(figsize=(9, 5))
 
-    ax.plot(df.time, df["mass_1"] + df["mass_2"], color=CSYS, lw=2, label="Total system mass")
+    ax.plot(
+        df.time,
+        df["mass_1"] + df["mass_2"],
+        color=CSYS,
+        lw=2,
+        label="Total system mass",
+    )
     ax.plot(df.time, df["mass_1"], color=C1, lw=2, label="Star 1 — total mass")
     ax.plot(df.time, df["mass_2"], color=C2, lw=2, label="Star 2 — total mass")
-    ax.plot(df.time, df["mass_he_core_1"], color=C1, lw=1.5, ls="--", label="Star 1 — He core")
-    ax.plot(df.time, df["mass_he_core_2"], color=C2, lw=1.5, ls="--", label="Star 2 — He core")
+    ax.plot(
+        df.time,
+        df["mass_he_core_1"],
+        color=C1,
+        lw=1.5,
+        ls="--",
+        label="Star 1 — He core",
+    )
+    ax.plot(
+        df.time,
+        df["mass_he_core_2"],
+        color=C2,
+        lw=1.5,
+        ls="--",
+        label="Star 2 — He core",
+    )
 
     # annotate the two interaction episodes
     for _, ev in events[events.event_types.map({"mt_history"}.issubset)].iterrows():
@@ -221,7 +241,15 @@ def plot_hr_diagram(df: pd.DataFrame, events: pd.DataFrame):
         Line2D([], [], color=C1, lw=2, label="Star 1"),
         Line2D([], [], color=C2, lw=2, label="Star 2"),
         Line2D([], [], color="grey", marker="o", ls="none", label="birth (ZAMS)"),
-        Line2D([], [], color="grey", marker="*", ls="none", ms=13, label="last moment as a star"),
+        Line2D(
+            [],
+            [],
+            color="grey",
+            marker="*",
+            ls="none",
+            ms=13,
+            label="last moment as a star",
+        ),
     ]
     ax.legend(handles=handles, loc="lower left", fontsize=9)
     plt.tight_layout()
@@ -264,7 +292,15 @@ def plot_summary(df: pd.DataFrame, events: pd.DataFrame):
     # --- panel 4: stellar type -----------------------------------------------------
     ax = axes[3]
     ax.step(df.time, df["stellar_type_1"], color=C1, lw=2, where="post", label="Star 1")
-    ax.step(df.time, df["stellar_type_2"], color=C2, lw=2, where="post", ls="--", label="Star 2")
+    ax.step(
+        df.time,
+        df["stellar_type_2"],
+        color=C2,
+        lw=2,
+        where="post",
+        ls="--",
+        label="Star 2",
+    )
     visited = sorted(set(df["stellar_type_1"]) | set(df["stellar_type_2"]))
     ax.set_yticks(visited)
     ax.set_yticklabels([StellarType(t) for t in visited], fontsize=8)
@@ -304,7 +340,6 @@ def plot_summary(df: pd.DataFrame, events: pd.DataFrame):
     print(
         f"  Star 2: {StellarType(df['stellar_type_2'].iloc[-1])}, {df['mass_2'].iloc[-1]:.2f} Msun"
     )
-    print(
-        f"  Separation: {df['semimajoraxis'].iloc[-1]:.2f} Rsun, eccentricity {df['eccentricity'].iloc[-1]:.3f}"
-    )
+    sm_axis, ecc = df["semimajoraxis"].iloc[-1], df["eccentricity"].iloc[-1]
+    print(f"  Separation: {sm_axis:.2f} Rsun, eccentricity {ecc:.3f}")
     print(f"  Bound? {'NO - disrupted' if df['unbound'].iloc[-1] else 'YES - still a binary'}")

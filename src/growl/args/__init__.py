@@ -3,7 +3,7 @@ from .options import (
     CompasSet,
     CompasVector,
 )
-from .properties import growl_args, growl_field
+from .properties import GrowlArgs, GrowlField, growl_transform
 from .types import (
     AllowCompasRange,
     AllowCompasRangeOrSet,
@@ -12,8 +12,7 @@ from .types import (
 )
 
 __all__ = [
-    "growl_args",
-    "growl_field",
+    "growl_transform",
     "AllowCompasRangeOrSet",
     "AllowCompasRange",
     "AllowCompasSet",
@@ -21,4 +20,6 @@ __all__ = [
     "CompasRange",
     "CompasSet",
     "CompasVector",
+    "GrowlArgs",
+    "GrowlField",
 ]
