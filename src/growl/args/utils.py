@@ -1,12 +1,12 @@
 from typing import Iterable, TypeVar
 
-ItemT_co = TypeVar("ItemT_co", covariant=True)
-NumericT_co = TypeVar("NumericT_co", int, float, covariant=True)
+ItemT = TypeVar("ItemT")
+NumericT = TypeVar("NumericT", int, float, covariant=True)
 
 
 def interpret_as_range(
-    iterable: Iterable[NumericT_co],
-) -> tuple[NumericT_co, int, NumericT_co]:
+    iterable: Iterable[NumericT],
+) -> tuple[NumericT, int, NumericT]:
     """Deduce a range which most closely resembles this iterable.
 
     This uses an algorithm which attempts to interpret any iterable collection of numeric values
@@ -15,10 +15,10 @@ def interpret_as_range(
     increment.
 
     Args:
-        iterable (Iterable[NumericT_co]): The iterable to interpret as a range
+        iterable (Iterable[NumericT]): The iterable to interpret as a range
 
     Returns:
-        tuple[NumericT_co, int, NumericT_co]: the starting value, number of values, and increment
+        tuple[NumericT, int, NumericT]: the starting value, number of values, and increment
             defining the deduced range
 
     Raises:

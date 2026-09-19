@@ -19,9 +19,6 @@ from attrs.converters import pipe
 from .converters import arg_converter
 from .options import CompasArgCollection
 
-T_co = TypeVar("T_co", bound=attrs.AttrsInstance, covariant=True)
-
-
 _UNION_TYPES = {Union, UnionType}
 
 
@@ -74,9 +71,12 @@ def validate_input_type(cls: type, attribute: attrs.Attribute, value: Any):
     )
 
 
+T = TypeVar("T")
+
+
 def convert_input_iterables(
-    value: T_co | Iterable[T_co] | None, field: attrs.Attribute
-) -> T_co | CompasArgCollection[T_co] | None:
+    value: T | Iterable[T] | None, field: attrs.Attribute
+) -> T | CompasArgCollection[T] | None:
     """Converts passed iterables to one of the COMPAS argument collections: Vector, Set, or Range.
 
     This method attempts a conversion for each COMPAS argument collection kind provided on the field
@@ -170,6 +170,8 @@ def transform_growl_args(_, fields: list[attrs.Attribute]):
 ### Definitions used to construct GrowlArgs configuration classes ###
 ### ------------------------------------------------------------- ###
 
+_MISSING = "__MISSING__"
+
 
 class GrowlArgs(attrs.AttrsInstance):
     @classmethod
@@ -185,7 +187,7 @@ class GrowlArgs(attrs.AttrsInstance):
             raise TypeError(
                 f"Expected an attrs class with at least one field attribute; got '{cls}'"
             )
-        if next(iter(argv), None) == getattr(cls, "command", "__MISSING__"):
+        if next(iter(argv), None) == getattr(cls, "command", _MISSING):
             argv = argv[1:]
 
         option_fields = {f.name: f for f in attrs.fields(cls)}
@@ -213,8 +215,8 @@ class GrowlArgs(attrs.AttrsInstance):
     def to_argv(self, remove_defaults: bool = False) -> list[str]:
         """Convert a growl options class to command-line arguments."""
         argv: list[str] = []
-        growl_command = getattr(type(self), "command")
-        if growl_command:
+        growl_command = getattr(type(self), "command", _MISSING)
+        if growl_command != _MISSING:
             argv.append(growl_command)
 
         for field in attrs.fields(self):

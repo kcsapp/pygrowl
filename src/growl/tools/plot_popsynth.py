@@ -6,6 +6,7 @@ image otherwise, and generates the selected plot from the data defined in the
 [onboarding notebook](https://github.com/FloorBroekgaarden/GROWL-catalog-public/blob/main/onboarding_growl/introduction_to_population_synthesis.ipynb).
 """
 
+import logging
 import os
 import sys
 from argparse import ArgumentParser
@@ -16,6 +17,8 @@ import growl.plot as gplt
 from growl.config import CompasOptions
 from growl.constants import StateColumn
 from growl.run import run_compas
+
+logging.basicConfig(level=logging.INFO)
 
 OUTPUT_PREFIX = "BSE_Detailed_Output"
 STANDARD_COLUMNS = [

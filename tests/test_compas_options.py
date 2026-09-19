@@ -66,7 +66,7 @@ def test_growl_args_to_argv(compas_argv, compas_options):
     assert compas_argv == re_argv
 
 
-def test_arv_to_growl_args(compas_argv, non_compas_argv, compas_options):
+def test_argv_to_growl_args(compas_argv, non_compas_argv, compas_options):
     re_opts, remaining = FakeCompasOptions.from_argv(compas_argv + non_compas_argv)
     assert compas_options == re_opts
     assert non_compas_argv == remaining

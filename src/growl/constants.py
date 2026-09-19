@@ -12,8 +12,7 @@ ur = get_application_registry()
 ur.define("ratio = [fraction]")
 ur.define("state = [state]")
 ur.define("@alias ratio = metallicity")
-# ur.define("percent = 100 * ratio = pct = %")
-ur.define("Myr = 1e6 * yr")
+# ur.define("Myr = 1e6 * yr")
 ratio = ur.ratio
 state = ur.state
 metallicity = ur.metallicity
@@ -23,7 +22,7 @@ s = ur.second
 rad = ur.rad
 Hz = ur.hertz
 yr = ur.year
-Myr = ur.Myr
+Myr = 1e6 * ur.yr
 AU = ur.au
 Gauss = ur.gauss
 

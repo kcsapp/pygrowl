@@ -1,7 +1,7 @@
 from typing import Iterable, TypeAlias
 
 from .options import CompasRange, CompasSet, CompasVector
-from .utils import ItemT_co, NumericT_co
+from .utils import ItemT, NumericT
 
 ###########################################################################
 ### Exported type aliases to enable or disable range/set/vector parsers ###
@@ -10,8 +10,8 @@ from .utils import ItemT_co, NumericT_co
 ###########################################################################
 
 AllowCompasRangeOrSet: TypeAlias = (
-    CompasRange[NumericT_co] | CompasSet[NumericT_co] | Iterable[NumericT_co] | NumericT_co | None
+    CompasRange[NumericT] | CompasSet[NumericT] | Iterable[NumericT] | NumericT | None
 )
-AllowCompasRange: TypeAlias = CompasRange[NumericT_co] | Iterable[NumericT_co] | NumericT_co | None
-AllowCompasSet: TypeAlias = CompasSet[ItemT_co] | Iterable[ItemT_co] | ItemT_co | None
-AllowCompasVector: TypeAlias = CompasVector[ItemT_co] | Iterable[ItemT_co] | ItemT_co | None
+AllowCompasRange: TypeAlias = CompasRange[NumericT] | Iterable[NumericT] | NumericT | None
+AllowCompasSet: TypeAlias = CompasSet[ItemT] | Iterable[ItemT] | ItemT | None
+AllowCompasVector: TypeAlias = CompasVector[ItemT] | Iterable[ItemT] | ItemT | None
