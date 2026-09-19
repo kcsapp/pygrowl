@@ -59,7 +59,7 @@ def convert(df: pl.LazyFrame, columns: Iterable[str] | None = None) -> pl.LazyFr
             pl.coalesce(
                 *(
                     pl.when(pl.col(name) == state)
-                    .then(pl.lit(enum.name, dtype=enum.pl_enum()))
+                    .then(pl.lit(enum.state, dtype=enum.pl_enum()))
                     .otherwise(pl.lit(None, dtype=enum.pl_enum()))
                     for state, enum in enum_map.items()
                 )
