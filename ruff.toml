@@ -1,4 +1,10 @@
 line-length = 100
 
 [lint]
-select = ["E", "F", "I"]
+extend-select = ["E", "F", "I"]
+
+ignore = [
+    # FIXME: UP040 seems to be causing issues with current pyrefly setup
+    # https://docs.astral.sh/ruff/rules/non-pep695-type-alias/
+    "UP040",
+]
