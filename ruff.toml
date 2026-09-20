@@ -7,4 +7,9 @@ ignore = [
     # FIXME: UP040 seems to be causing issues with current pyrefly setup
     # https://docs.astral.sh/ruff/rules/non-pep695-type-alias/
     "UP040",
+    # TODO: Check the violations for the following rules and fix them.
+    # https://docs.astral.sh/ruff/rules/mutable-class-default/
+    "RUF012",
+    # https://docs.astral.sh/ruff/rules/type-name-incorrect-variance/
+    "PLC0105"
 ]
