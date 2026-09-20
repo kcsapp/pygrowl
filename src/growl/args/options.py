@@ -1,5 +1,6 @@
+from collections.abc import Iterable, Iterator
 from copy import copy
-from typing import Iterable, Iterator, Protocol, Self, TypeVar, runtime_checkable
+from typing import Protocol, Self, TypeVar, runtime_checkable
 
 import attrs
 

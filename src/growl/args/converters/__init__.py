@@ -9,13 +9,13 @@ from .primitives import (
 )
 
 __all__ = [
-    "BoolArgFormat",
     "BoolArgConverter",
-    "StrArgConverter",
-    "IntArgConverter",
+    "BoolArgFormat",
     "FloatArgConverter",
-    "VectorArgConverter",
+    "IntArgConverter",
     "RangeArgConverter",
     "SetArgConverter",
+    "StrArgConverter",
+    "VectorArgConverter",
     "arg_converter",
 ]

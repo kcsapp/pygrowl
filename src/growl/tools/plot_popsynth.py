@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import growl.io as gio
 import growl.plot as gplt
@@ -105,7 +105,7 @@ def main():
         rundir = os.path.join(args.output, args.rundir, "Detailed_Output")
     else:
         # always generate BSE-mode detailed output, and timestamp each run
-        ts_suffix = int(datetime.now(timezone.utc).timestamp())
+        ts_suffix = int(datetime.now(UTC).timestamp())
         options = options.evolve(
             mode="BSE",
             detailed_output=True,

@@ -1,4 +1,5 @@
-from typing import Iterable, TypeAlias
+from collections.abc import Iterable
+from typing import TypeAlias
 
 from .options import CompasRange, CompasSet, CompasVector
 from .utils import ItemT, NumericT

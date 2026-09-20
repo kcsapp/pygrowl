@@ -36,7 +36,7 @@ Zsol = ur.Quantity(0.014, ur.metallicity)
 class StateEnum(enum.Enum):
     @classmethod
     def _missing_(cls, value: Any):
-        return next((v for v in cls if v.state == int(value)))
+        return next(v for v in cls if v.state == int(value))
 
     @cached_property
     def state(self) -> int:

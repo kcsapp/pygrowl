@@ -1,10 +1,11 @@
-from typing import Iterable, TypeVar
+from collections.abc import Iterable
+from typing import TypeVar
 
 ItemT = TypeVar("ItemT")
 NumericT = TypeVar("NumericT", int, float, covariant=True)
 
 
-def interpret_as_range(
+def interpret_as_range[NumericT: (int, float)](
     iterable: Iterable[NumericT],
 ) -> tuple[NumericT, int, NumericT]:
     """Deduce a range which most closely resembles this iterable.
@@ -44,8 +45,7 @@ def interpret_as_range(
             rng_min = item
         else:
             interval = item - rng_min
-            if item > rng_max:
-                rng_max = item
+            rng_max = max(rng_max, item)
 
         if min_increment % interval == 0:
             min_increment = interval
