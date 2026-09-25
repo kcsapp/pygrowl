@@ -1,10 +1,10 @@
 import enum
 import re
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cache, cached_property
 from typing import Any, Literal
 
-import numpy as np
+import polars as pl
 from pint import get_application_registry
 
 ### Useful units ###
@@ -37,6 +37,11 @@ class StateEnum(enum.Enum):
     @classmethod
     def _missing_(cls, value: Any):
         return next((v for v in cls if v.state == int(value)))
+
+    @classmethod
+    @cache
+    def pl_enum(cls) -> pl.Enum:
+        return pl.Enum([ev.value[0] for ev in cls])
 
     @cached_property
     def state(self) -> int:
@@ -142,7 +147,7 @@ _INDEX_PAT = re.compile(r".*\(([12])\)")
 class MeasurementContext:
     name: str
     desc: str
-    type: type
+    type: pl.DataType | type[StateEnum]
     unit: ur.Unit
 
     @cached_property
@@ -166,42 +171,42 @@ class MeasurementContext:
 
 
 COLUMN_DATA: list[MeasurementContext] = [
-    MeasurementContext("Age(1)", "Age of the {star}", np.float64, Myr),
-    MeasurementContext("Age(2)", "Age of the {star}", np.float64, Myr),
+    MeasurementContext("Age(1)", "Age of the {star}", pl.Float64(), Myr),
+    MeasurementContext("Age(2)", "Age of the {star}", pl.Float64(), Myr),
     MeasurementContext(
         "Ang_Momentum(1)",
         "Anuglar momentum of the {star}",
-        np.float64,
+        pl.Float64(),
         Msol * AU**2 / yr,
     ),
     MeasurementContext(
         "Ang_Momentum(2)",
         "Angular momentum of the {star}",
-        np.float64,
+        pl.Float64(),
         Msol * AU**2 / yr,
     ),
     MeasurementContext(
         "Ang_Momentum_Total",
         "Total angular momentum of the {star}",
-        np.float64,
+        pl.Float64(),
         Msol * AU**2 / yr,
     ),
     MeasurementContext(
         "Beta",
         "Fraction of the mass lost from the donor that ends up on the accretor",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Dominant_Mass_Loss_Rate(1)",
         "Rate of mass loss from the dominant source of that loss for the {star}",
-        np.int32,
+        pl.Int32(),
         ratio,
     ),
     MeasurementContext(
         "Dominant_Mass_Loss_Rate(2)",
         "Rate of mass loss from the dominant source of that loss for the {star}",
-        np.int32,
+        pl.Int32(),
         ratio,
     ),
     MeasurementContext(
@@ -210,23 +215,23 @@ COLUMN_DATA: list[MeasurementContext] = [
             "Deviation from circularity of the orbital of the {star}: the ratio of the "
             "center-to-focus distance to the semi-major axis"
         ),
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
-        "Energy_Total", "Total energy of the {star}", np.float64, Msol * AU**2 / yr**2
+        "Energy_Total", "Total energy of the {star}", pl.Float64(), Msol * AU**2 / yr**2
     ),
-    MeasurementContext("Luminosity(1)", "Luminositoy of the {star}", np.float64, Lsol),
-    MeasurementContext("Luminosity(2)", "Luminositoy of the {star}", np.float64, Lsol),
+    MeasurementContext("Luminosity(1)", "Luminositoy of the {star}", pl.Float64(), Lsol),
+    MeasurementContext("Luminosity(2)", "Luminositoy of the {star}", pl.Float64(), Lsol),
     MeasurementContext("MT_History", "Mass Transfer state", MassTransferState, state),
-    MeasurementContext("Mass(1)", "Current mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass(2)", "Current mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass@ZAMS(1)", "Mass at ZAMS ({star})", np.float64, Msol),
-    MeasurementContext("Mass@ZAMS(2)", "Mass at ZAMS ({star})", np.float64, Msol),
+    MeasurementContext("Mass(1)", "Current mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass(2)", "Current mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass@ZAMS(1)", "Mass at ZAMS ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass@ZAMS(2)", "Mass at ZAMS ({star})", pl.Float64(), Msol),
     MeasurementContext(
         "MassTransferRateDonor",
         "The rate at which mass is lost from the donor",
-        np.float64,
+        pl.Float64(),
         Msol / Myr,
     ),
     MeasurementContext(
@@ -238,101 +243,109 @@ COLUMN_DATA: list[MeasurementContext] = [
         MassTransferTimescale,
         state,
     ),
-    MeasurementContext("Mass_0(1)", "Effective initial mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass_0(2)", "Effective initial mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass_CO_Core(1)", "Carbon-Oxygen core mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass_CO_Core(2)", "Carbon-Oxygen core mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass_Core(1)", "Core mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass_Core(2)", "Core mass ({star})", np.float64, Msol),
+    MeasurementContext("Mass_0(1)", "Effective initial mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass_0(2)", "Effective initial mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass_CO_Core(1)", "Carbon-Oxygen core mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass_CO_Core(2)", "Carbon-Oxygen core mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass_Core(1)", "Core mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass_Core(2)", "Core mass ({star})", pl.Float64(), Msol),
     MeasurementContext(
         "Mass_Env(1)",
         "Envelope mass calculated using Hurley et al. (2000) ({star})",
-        np.float64,
+        pl.Float64(),
         Msol,
     ),
     MeasurementContext(
         "Mass_Env(2)",
         "Envelope mass calculated using Hurley et al. (2000) ({star})",
-        np.float64,
+        pl.Float64(),
         Msol,
     ),
-    MeasurementContext("Mass_He_Core(1)", "Helium core mass ({star})", np.float64, Msol),
-    MeasurementContext("Mass_He_Core(2)", "Helium core mass ({star})", np.float64, Msol),
-    MeasurementContext("Mdot(1)", "Mass loss rate in winds ({star})", np.float64, Msol / yr),
-    MeasurementContext("Mdot(2)", "Mass loss rate in winds ({star})", np.float64, Msol / yr),
+    MeasurementContext("Mass_He_Core(1)", "Helium core mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mass_He_Core(2)", "Helium core mass ({star})", pl.Float64(), Msol),
+    MeasurementContext("Mdot(1)", "Mass loss rate in winds ({star})", pl.Float64(), Msol / yr),
+    MeasurementContext("Mdot(2)", "Mass loss rate in winds ({star})", pl.Float64(), Msol / yr),
     MeasurementContext(
-        "Metallicity@ZAMS(1)", "Metallicity of {star} at ZAMS", np.float64, metallicity
+        "Metallicity@ZAMS(1)", "Metallicity of {star} at ZAMS", pl.Float64(), metallicity
     ),
     MeasurementContext(
-        "Metallicity@ZAMS(2)", "Metallicity of {star} at ZAMS", np.float64, metallicity
+        "Metallicity@ZAMS(2)", "Metallicity of {star} at ZAMS", pl.Float64(), metallicity
     ),
-    MeasurementContext("Omega(1)", "Angular frequency ({star})", np.float64, Hz),
-    MeasurementContext("Omega(2)", "Angular frequency ({star})", np.float64, Hz),
-    MeasurementContext("Omega_Break(1)", "Break-up angular frequency ({star})", np.float64, Hz),
-    MeasurementContext("Omega_Break(2)", "Break-up angular frequency ({star})", np.float64, Hz),
+    MeasurementContext("Omega(1)", "Angular frequency ({star})", pl.Float64(), Hz),
+    MeasurementContext("Omega(2)", "Angular frequency ({star})", pl.Float64(), Hz),
+    MeasurementContext("Omega_Break(1)", "Break-up angular frequency ({star})", pl.Float64(), Hz),
+    MeasurementContext("Omega_Break(2)", "Break-up angular frequency ({star})", pl.Float64(), Hz),
     MeasurementContext(
         "Pulsar_Birth_Period(1)",
         "Pulsar spin period at birth of the {star}",
-        np.float64,
+        pl.Float64(),
         s,
     ),
     MeasurementContext(
         "Pulsar_Birth_Period(2)",
         "Pulsar spin period at birth of the {star}",
-        np.float64,
+        pl.Float64(),
         s,
     ),
     MeasurementContext(
         "Pulsar_Birth_Spin_Down(1)",
         "Pulsar spin-down rate as time derivative of spin frequency ({star})",
-        np.float64,
+        pl.Float64(),
         rad,
     ),
     MeasurementContext(
         "Pulsar_Birth_Spin_Down(2)",
         "Pulsar spin-down rate as time derivative of spin frequency ({star})",
-        np.float64,
+        pl.Float64(),
         rad,
     ),
     MeasurementContext(
         "Pulsar_Mag_Field(1)",
         "Pulsar magnetic field strength ({star})",
-        np.float64,
+        pl.Float64(),
         Gauss,
     ),
     MeasurementContext(
         "Pulsar_Mag_Field(2)",
         "Pulsar magnetic field strength ({star})",
-        np.float64,
+        pl.Float64(),
         Gauss,
     ),
     MeasurementContext(
         "Pulsar_Spin_Down(1)",
         "Pulsar spin-down rate as time derivative of spin frequency ({star})",
-        np.float64,
+        pl.Float64(),
         rad,
     ),
     MeasurementContext(
         "Pulsar_Spin_Down(2)",
         "Pulsar spin-down rate as time derivative of spin frequency ({star})",
-        np.float64,
+        pl.Float64(),
         rad,
     ),
-    MeasurementContext("Pulsar_Spin_Period(1)", "Pulsar spin period of the {star}", np.float64, s),
-    MeasurementContext("Pulsar_Spin_Period(2)", "Pulsar spin period of the {star}", np.float64, s),
-    MeasurementContext("Radius(1)", "Radius of the {star}", np.float64, Rsol),
-    MeasurementContext("Radius(2)", "Radius of the {star}", np.float64, Rsol),
+    MeasurementContext(
+        "Pulsar_Spin_Period(1)", "Pulsar spin period of the {star}", pl.Float64(), s
+    ),
+    MeasurementContext(
+        "Pulsar_Spin_Period(2)", "Pulsar spin period of the {star}", pl.Float64(), s
+    ),
+    MeasurementContext("Radius(1)", "Radius of the {star}", pl.Float64(), Rsol),
+    MeasurementContext("Radius(2)", "Radius of the {star}", pl.Float64(), Rsol),
     MeasurementContext(
         "Record_Type",
         "Indicator of the state of the {star} in binary evolution",
         BinarySystemState,
         state,
     ),
-    MeasurementContext("RocheLobe(1)", "Roche radius at peripasis of the {star}", np.float64, Rsol),
-    MeasurementContext("RocheLobe(2)", "Roche radius at peripasis of the {star}", np.float64, Rsol),
-    MeasurementContext("SEED", "Random seed value", np.uint64, state),
     MeasurementContext(
-        "SemiMajorAxis", "Semi-major axis of the orbit of the {star}", np.float64, Rsol
+        "RocheLobe(1)", "Roche radius at peripasis of the {star}", pl.Float64(), Rsol
+    ),
+    MeasurementContext(
+        "RocheLobe(2)", "Roche radius at peripasis of the {star}", pl.Float64(), Rsol
+    ),
+    MeasurementContext("SEED", "Random seed value", pl.UInt64(), state),
+    MeasurementContext(
+        "SemiMajorAxis", "Semi-major axis of the orbit of the {star}", pl.Float64(), Rsol
     ),
     MeasurementContext(
         "Stellar_Type(1)",
@@ -358,102 +371,102 @@ COLUMN_DATA: list[MeasurementContext] = [
         StellarType,
         state,
     ),
-    MeasurementContext("Tau_Dynamical(1)", "Dynamical time of {star}", np.float64, Myr),
-    MeasurementContext("Tau_Dynamical(2)", "Dynamical time of {star}", np.float64, Myr),
+    MeasurementContext("Tau_Dynamical(1)", "Dynamical time of {star}", pl.Float64(), Myr),
+    MeasurementContext("Tau_Dynamical(2)", "Dynamical time of {star}", pl.Float64(), Myr),
     MeasurementContext(
         "Tau_Radial(1)",
         "Radial expansion timescale: e-folding time of stellar radius of {star}",
-        np.float64,
+        pl.Float64(),
         Myr,
     ),
     MeasurementContext(
         "Tau_Radial(2)",
         "Radial expansion timescale: e-folding time of stellar radius of {star}",
-        np.float64,
+        pl.Float64(),
         Myr,
     ),
-    MeasurementContext("Tau_Thermal(1)", "Thermal timescale of {star}", np.float64, Myr),
-    MeasurementContext("Tau_Thermal(2)", "Thermal timescale of {star}", np.float64, Myr),
-    MeasurementContext("Teff(1)", "Effective temperature of {star}", np.float64, K),
-    MeasurementContext("Teff(2)", "Effective temperature of {star}", np.float64, K),
-    MeasurementContext("Time", "Total time since ZAMS", np.float64, Myr),
+    MeasurementContext("Tau_Thermal(1)", "Thermal timescale of {star}", pl.Float64(), Myr),
+    MeasurementContext("Tau_Thermal(2)", "Thermal timescale of {star}", pl.Float64(), Myr),
+    MeasurementContext("Teff(1)", "Effective temperature of {star}", pl.Float64(), K),
+    MeasurementContext("Teff(2)", "Effective temperature of {star}", pl.Float64(), K),
+    MeasurementContext("Time", "Total time since ZAMS", pl.Float64(), Myr),
     MeasurementContext(
         "Unbound",
         "Indicates whether or not the binary system is unbound",
-        np.uint8,
+        pl.UInt8(),
         state,
     ),
     MeasurementContext(
         "Zeta_Hurley(1)",
         "Adiabatic exponent for {star} calculated per Hurley, et al. (2000) using core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Zeta_Hurley(2)",
         "Adiabatic exponent for {star} calculated per Hurley, et al. (2000) using core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Zeta_Hurley_He(1)",
         "Adiabatic exponent for {star} calculated per Hurley, et al. (2000) using He core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Zeta_Hurley_He(2)",
         "Adiabatic exponent for {star} calculated per Hurley, et al. (2000) using He core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Zeta_Soberman(1)",
         "Adiabatic exponent for {star} calculated per Soberman, et al. (1997) using core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Zeta_Soberman(2)",
         "Adiabatic exponent for {star} calculated per Soberman, et al. (1997) using core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Zeta_Soberman_He(1)",
         "Adiabatic exponent for {star} calculated per Soberman, et al. (1997) using He core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
     MeasurementContext(
         "Zeta_Soberman_He(2)",
         "Adiabatic exponent for {star} calculated per Soberman, et al. (1997) using He core mass",
-        np.float64,
+        pl.Float64(),
         ratio,
     ),
-    MeasurementContext("dT", "Current timestep", np.float64, Myr),
+    MeasurementContext("dT", "Current timestep", pl.Float64(), Myr),
     MeasurementContext(
         "dmMT(1)",
         "The amount of mass accreted to or donated from {star} during a mass transfer episode",
-        np.float64,
+        pl.Float64(),
         Msol,
     ),
     MeasurementContext(
         "dmMT(2)",
         "The amount of mass accreted to or donated from {star} during a mass transfer episode",
-        np.float64,
+        pl.Float64(),
         Msol,
     ),
     MeasurementContext(
         "dmWinds(1)",
         "The amount of mass lost from {star} due to winds",
-        np.float64,
+        pl.Float64(),
         Msol,
     ),
     MeasurementContext(
         "dmWinds(2)",
         "The amount of mass lost from {star} due to winds",
-        np.float64,
+        pl.Float64(),
         Msol,
     ),
 ]
