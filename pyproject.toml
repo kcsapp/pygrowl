@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling"]
+requires = [ "hatchling" ]
 
 [project]
 name = "growl"
@@ -9,20 +9,20 @@ description = "GROWL Catalog library"
 readme = "README.md"
 requires-python = ">=3.13"
 classifiers = [
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
-  "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
-  "attrs>=26.1.0",
-  "docker>=7.2.0",
-  "h5py>=3.16.0",
-  "matplotlib>=3.11.1",
-  "numpy>=2.5.1",
-  "pint>=0.25.3",
-  "polars>=1.44.2",
-  "uncertainties>=3.2.3",
+    "attrs>=26.1.0",
+    "docker>=7.2.0",
+    "h5py>=3.16.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.1",
+    "pint>=0.25.3",
+    "polars>=1.44.2",
+    "uncertainties>=3.2.3",
 ]
 
 [project.scripts]
@@ -31,18 +31,25 @@ plot-popsynth = "growl.tools.plot_popsynth:main"
 
 [dependency-groups]
 dev = [
-  "jupyter>=1.1.1",
-  "pre-commit>=4.6.1",
-  "pyrefly>=1.3.1",
-  "pytest>=9.1.1",
-  "types-docker>=7.2.0.20260827",
+    "jupyter>=1.1.1",
+    "pre-commit>=4.6.1",
+    "pyrefly>=1.3.1",
+    "pytest>=9.1.1",
+    "types-docker>=7.2.0.20260827",
 ]
 
 [tool.ruff]
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = [ "E", "F", "I" ]
+
+[tool.pyproject-fmt]
+indent = 4
+keep_full_version = true
+table_format = "long"
+sub_table_spacing = "\n"
+collapse_tables = [ "project.authors" ]
 
 [tool.pyrefly]
 infer-with-first-use = false

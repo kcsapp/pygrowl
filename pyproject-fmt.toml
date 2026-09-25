@@ -1,5 +1,0 @@
-indent = 4
-keep_full_version = true
-table_format = "long"
-sub_table_spacing = "\n"
-collapse_tables = [ "project.authors" ]
