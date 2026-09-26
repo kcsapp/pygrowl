@@ -1,0 +1,44 @@
+name: "Git Hooks"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: ~
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  # renovate: datasource=pypi depName=uv
+  UV_VERSION: 0.12.17
+
+jobs:
+  run-prek:
+    name: prek run --all-files
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # uv and project dependencies are required for type checking.
+      - name: Install uv ${{ env.UV_VERSION }} & Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4  # v10.1.0
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+          version: ${{ env.UV_VERSION }}
+          activate-environment: true
+
+      - name: Install Python dependencies
+        run: uv sync
+
+      - name: Run prek
+        uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
