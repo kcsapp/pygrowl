@@ -10,6 +10,4 @@ ignore = [
     # TODO: Check the violations for the following rules and fix them.
     # https://docs.astral.sh/ruff/rules/mutable-class-default/
     "RUF012",
-    # https://docs.astral.sh/ruff/rules/type-name-incorrect-variance/
-    "PLC0105"
 ]

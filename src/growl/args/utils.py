@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from typing import TypeVar
 
 ItemT = TypeVar("ItemT")
-NumericT = TypeVar("NumericT", int, float, covariant=True)
+NumericT_co = TypeVar("NumericT_co", int, float, covariant=True)
 
 
 def interpret_as_range[NumericT: (int, float)](
