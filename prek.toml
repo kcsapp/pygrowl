@@ -2,6 +2,7 @@
 repo = "builtin"
 hooks = [
   { id = "check-yaml" },
+  { id = "check-toml" },
   { id = "end-of-file-fixer" },
   { id = "trailing-whitespace" },
 ]
