@@ -39,11 +39,5 @@ dev = [
     "types-docker>=7.2.0.20260827",
 ]
 
-[tool.ruff]
-line-length = 100
-
-[tool.ruff.lint]
-select = [ "E", "F", "I" ]
-
 [tool.pyrefly]
 infer-with-first-use = false

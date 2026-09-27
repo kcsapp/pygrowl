@@ -12,9 +12,8 @@ from .types import (
 )
 
 __all__ = [
-    "growl_transform",
-    "AllowCompasRangeOrSet",
     "AllowCompasRange",
+    "AllowCompasRangeOrSet",
     "AllowCompasSet",
     "AllowCompasVector",
     "CompasRange",
@@ -22,4 +21,5 @@ __all__ = [
     "CompasVector",
     "GrowlArgs",
     "GrowlField",
+    "growl_transform",
 ]

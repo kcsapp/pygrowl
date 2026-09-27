@@ -1,11 +1,10 @@
 from collections import defaultdict
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from types import UnionType
 from typing import (
     Any,
-    Iterable,
     Literal,
-    Mapping,
     Self,
     TypeVar,
     Union,
@@ -44,9 +43,11 @@ def _flag_to_arg(flag: str) -> str:
 
 def _str_allowed(type_objs: Any) -> bool:
     for type_obj in type_objs:
-        if type_obj is str:
-            return True
-        elif get_origin(type_obj) is Literal and type(next(iter(get_args(type_obj)), None)) is str:
+        if (
+            type_obj is str
+            or get_origin(type_obj) is Literal
+            and type(next(iter(get_args(type_obj)), None)) is str
+        ):
             return True
 
     return False
@@ -74,7 +75,7 @@ def validate_input_type(cls: type, attribute: attrs.Attribute, value: Any):
 T = TypeVar("T")
 
 
-def convert_input_iterables(
+def convert_input_iterables[T](
     value: T | Iterable[T] | None, field: attrs.Attribute
 ) -> T | CompasArgCollection[T] | None:
     """Converts passed iterables to one of the COMPAS argument collections: Vector, Set, or Range.

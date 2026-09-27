@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from functools import reduce
-from typing import Iterable
 
 import h5py
 import pandas as pd
@@ -18,7 +18,7 @@ def load(filename: str, columns: Iterable[str] | None = None) -> pd.DataFrame:
         pd.DataFrame: A pandas dataframe representing the stored h5 data
     """
     with h5py.File(filename) as f:
-        load_column_data = (c for c in COLUMN_DATA if c.name in f.keys())
+        load_column_data = (c for c in COLUMN_DATA if c.name in f)
         if columns:
             load_column_data = filter(lambda c: c.name in columns, load_column_data)
 
@@ -102,7 +102,7 @@ def select_events(
                         name
                         for name in columns
                         if y[name + lsuffix] != y[name + rsuffix]
-                        and all((y[name + suff] != -1 for suff in (lsuffix, rsuffix)))
+                        and all(y[name + suff] != -1 for suff in (lsuffix, rsuffix))
                     ]
                 ),
                 axis=1,

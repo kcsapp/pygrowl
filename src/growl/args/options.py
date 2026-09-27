@@ -1,9 +1,10 @@
+from collections.abc import Iterable, Iterator
 from copy import copy
-from typing import Iterable, Iterator, Protocol, Self, TypeVar, runtime_checkable
+from typing import Protocol, Self, TypeVar, runtime_checkable
 
 import attrs
 
-from .utils import ItemT, NumericT, interpret_as_range
+from .utils import ItemT, NumericT_co, interpret_as_range
 
 _FLOAT_PRECISION = 9
 
@@ -47,12 +48,12 @@ class CompasSet(Iterable[ItemT]):
 
 
 @attrs.define(frozen=True)
-class CompasRange(Iterable[NumericT]):
+class CompasRange(Iterable[NumericT_co]):
     """Represent COMPAS Range-type argument inputs."""
 
-    start: NumericT
+    start: NumericT_co
     count: int
-    increment: NumericT
+    increment: NumericT_co
 
     @classmethod
     def from_slice(cls, sl: slice):
@@ -63,7 +64,7 @@ class CompasRange(Iterable[NumericT]):
         )
 
     @classmethod
-    def from_iterable(cls, iterable: Iterable[NumericT]):
+    def from_iterable(cls, iterable: Iterable[NumericT_co]):
         """Validate and extract range properties from an iterable to create a CompasRange.
 
         Uses an algorithm to try to deduce what range-defining values might have produced the
@@ -76,7 +77,7 @@ class CompasRange(Iterable[NumericT]):
         start, count, increment = interpret_as_range(iterable)
         return CompasRange(start=start, count=count, increment=round(increment, _FLOAT_PRECISION))
 
-    def __iter__(self) -> Iterator[NumericT]:
+    def __iter__(self) -> Iterator[NumericT_co]:
         value, remaining = copy(self.start), self.count
         while remaining != 0:
             yield value
