@@ -39,5 +39,26 @@ dev = [
     "types-docker>=7.2.0.20260827",
 ]
 
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = [ "E", "F", "I" ]
+ignore = [
+    # TODO: Check the violations for the following rules and fix them.
+    # https://docs.astral.sh/ruff/rules/mutable-class-default/
+    "RUF012",
+    # FIXME: UP040 seems to be causing issues with current pyrefly setup
+    # https://docs.astral.sh/ruff/rules/non-pep695-type-alias/
+    "UP040",
+]
+
+[tool.pyproject-fmt]
+indent = 4
+keep_full_version = true
+table_format = "long"
+sub_table_spacing = "\n"
+collapse_tables = [ "project.authors" ]
+
 [tool.pyrefly]
 infer-with-first-use = false
