@@ -70,7 +70,7 @@ def run_compas_docker(
     Args:
         input_dir (str, optional) : Name of the input directory (default: "data/input")
         logs_dir (str, optional): Name of the logs directory (default: "data/logs")
-        args (MutableMapping[str, Any] | None, optional): Arguments to pass to the command 
+        args (MutableMapping[str, Any] | None, optional): Arguments to pass to the command
             (default: None)
         repo (str, optional): Docker image repository to use (default: "teamcompas/compas")
         tag (str | None, optional): Image tag from the above repository to use (default: "latest")
