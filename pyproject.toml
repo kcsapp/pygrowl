@@ -39,5 +39,12 @@ dev = [
     "types-docker>=7.2.0.20260827",
 ]
 
+[tool.pyproject-fmt]
+indent = 4
+keep_full_version = true
+table_format = "long"
+sub_table_spacing = "\n"
+collapse_tables = [ "project.authors" ]
+
 [tool.pyrefly]
 infer-with-first-use = false
