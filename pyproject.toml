@@ -36,6 +36,14 @@ dev = [
     "prek==0.5.3",
     "pyrefly>=1.3.1",
     "pytest>=9.1.1",
+    # tornado is a transitive dependency, but it has several security issues:
+    # * https://github.com/advisories/GHSA-wwv5-g3v4-889x
+    # * https://github.com/advisories/GHSA-8423-8fgw-73vq
+    # * https://github.com/advisories/GHSA-mpf4-983q-p7j4
+    # and we have some issues with the package dependent on it:
+    # https://github.com/kcsapp/pygrowl/issues/10
+    # This explicit definition can be removed after revisiting jupyter dependency.
+    "tornado>=6.5.8",
     "types-docker>=7.2.0.20260827",
 ]
 
