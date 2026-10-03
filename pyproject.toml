@@ -47,6 +47,9 @@ dev = [
     "types-docker>=7.2.0.20260827",
 ]
 
+## NOTE: The following tooling configuration can also be stored in dedicated files.
+## The current agreement is to keep configuration for each tool in pyproject.toml
+## until that tool's configuration reaches 20 lines in this file.
 [tool.ruff]
 line-length = 100
 
