@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import TypeAlias
 
 from .options import CompasRange, CompasSet, CompasVector
 from .utils import ItemT, NumericT_co
@@ -10,9 +9,9 @@ from .utils import ItemT, NumericT_co
 ###    which would always parse successfully
 ###########################################################################
 
-AllowCompasRangeOrSet: TypeAlias = (
+AllowCompasRangeOrSet = (
     CompasRange[NumericT_co] | CompasSet[NumericT_co] | Iterable[NumericT_co] | NumericT_co | None
 )
-AllowCompasRange: TypeAlias = CompasRange[NumericT_co] | Iterable[NumericT_co] | NumericT_co | None
-AllowCompasSet: TypeAlias = CompasSet[ItemT] | Iterable[ItemT] | ItemT | None
-AllowCompasVector: TypeAlias = CompasVector[ItemT] | Iterable[ItemT] | ItemT | None
+AllowCompasRange = CompasRange[NumericT_co] | Iterable[NumericT_co] | NumericT_co | None
+AllowCompasSet = CompasSet[ItemT] | Iterable[ItemT] | ItemT | None
+AllowCompasVector = CompasVector[ItemT] | Iterable[ItemT] | ItemT | None
