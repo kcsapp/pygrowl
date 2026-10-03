@@ -31,7 +31,7 @@ plot-popsynth = "growl.tools.plot_popsynth:main"
 
 [dependency-groups]
 dev = [
-    "jupyter>=1.1.1",
+    "jupyterlab==4.6.4",
     "pandas-stubs>=3.0.3.260530",
     "prek==0.5.3",
     "pyrefly>=1.3.1",
