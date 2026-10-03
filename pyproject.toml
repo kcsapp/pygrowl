@@ -44,7 +44,6 @@ dev = [
     # https://github.com/kcsapp/pygrowl/issues/10
     # This explicit definition can be removed after revisiting jupyter dependency.
     "tornado>=6.5.8,<7",
-    "types-docker>=7.2.0.20260827",
     "types-docker>=7.2.0.20260827,<8",
 ]
 
