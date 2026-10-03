@@ -15,14 +15,14 @@ classifiers = [
     "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
-    "attrs>=26.1.0",
-    "docker>=7.2.0",
-    "h5py>=3.16.0",
-    "matplotlib>=3.11.1",
-    "numpy>=2.5.1",
-    "pandas>=3.0.3",
-    "pint>=0.25.3",
-    "uncertainties>=3.2.3",
+    "attrs>=26.1.0,<27",
+    "docker>=7.2.0,<8",
+    "h5py>=3.16.0,<4",
+    "matplotlib>=3.11.1,<4",
+    "numpy>=2.5.1,<3",
+    "pandas>=3.0.3,<4",
+    "pint>=0.25.3,<2",
+    "uncertainties>=3.2.3,<4",
 ]
 
 [project.scripts]
@@ -31,11 +31,11 @@ plot-popsynth = "growl.tools.plot_popsynth:main"
 
 [dependency-groups]
 dev = [
-    "jupyterlab==4.6.4",
-    "pandas-stubs>=3.0.3.260530",
-    "prek==0.5.3",
-    "pyrefly>=1.3.1",
-    "pytest>=9.1.1",
+    "jupyterlab==4.6.4,<5",
+    "pandas-stubs>=3.0.3.260530,<4",
+    "prek==0.5.3,<2",
+    "pyrefly>=1.3.1,<2",
+    "pytest>=9.1.1,<10",
     # tornado is a transitive dependency, but it has several security issues:
     # * https://github.com/advisories/GHSA-wwv5-g3v4-889x
     # * https://github.com/advisories/GHSA-8423-8fgw-73vq
@@ -43,8 +43,9 @@ dev = [
     # and we have some issues with the package dependent on it:
     # https://github.com/kcsapp/pygrowl/issues/10
     # This explicit definition can be removed after revisiting jupyter dependency.
-    "tornado>=6.5.8",
+    "tornado>=6.5.8,<7",
     "types-docker>=7.2.0.20260827",
+    "types-docker>=7.2.0.20260827,<8",
 ]
 
 ## NOTE: The following tooling configuration can also be stored in dedicated files.
