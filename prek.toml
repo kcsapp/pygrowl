@@ -27,7 +27,7 @@ rev = "v0.16.8"
 hooks = [
   {
     id = "ruff-check",
-    args = ["--fix"],
+    args = ["--fix", "--show-fixes"],
   },
   { id = "ruff-format" },
 ]
