@@ -42,7 +42,8 @@ class VectorArgConverter(TypedArgConverter[CompasVector[T]]):
     def from_arg(self, arg: str, **config) -> CompasVector[T]:
         m = self._VEC_PAT.match(arg)
         if not m:
-            raise ValueError(f"Invalid vector specifier: '{arg}'")
+            msg = f"Invalid vector specifier: '{arg}'"
+            raise ValueError(msg)
 
         conv = self._converters[0].from_arg
         return CompasVector.from_iterable(
@@ -80,7 +81,8 @@ class SetArgConverter(TypedArgConverter[CompasSet[T]]):
     def from_arg(self, arg: str, **config) -> CompasSet[T]:
         m = self._SET_PAT.match(arg)
         if not m:
-            raise ValueError(f"Invalid set specifier: '{arg}'")
+            msg = f"Invalid set specifier: '{arg}'"
+            raise ValueError(msg)
 
         conv = self._converters[0].from_arg
         return CompasSet.from_iterable(
@@ -128,7 +130,8 @@ class RangeArgConverter(TypedArgConverter[CompasRange[NumericT]]):
     def from_arg(self, arg: str, **config) -> CompasRange[NumericT]:
         m = self._RANGE_PAT.match(arg)
         if not m:
-            raise ValueError(f"Invalid range specifier: '{arg}'")
+            msg = f"Invalid range specifier: '{arg}'"
+            raise ValueError(msg)
 
         conv = self._converters[0].from_arg
         return CompasRange(

@@ -67,9 +67,8 @@ def validate_input_type(cls: type, attribute: attrs.Attribute, value: Any):
         if get_origin(attr_type) is Literal and value in get_args(attr_type):
             return
 
-    raise ValueError(
-        f"{attribute.name} does not support type {value_type} (allowed: {attribute.type})"
-    )
+    msg = f"{attribute.name} does not support type {value_type} (allowed: {attribute.type})"
+    raise ValueError(msg)
 
 
 T = TypeVar("T")
@@ -122,7 +121,8 @@ def field_value_to_arg(value: Any, field: attrs.Attribute) -> str | None:
         if isinstance(value, instance_type):
             return arg_converter[attr_type].to_arg(value)
 
-    raise TypeError(f"Value type '{type(value)}' is not valid for field {field}")
+    msg = f"Value type '{type(value)}' is not valid for field {field}"
+    raise TypeError(msg)
 
 
 def field_value_from_arg(arg: str, field: attrs.Attribute) -> Any:
@@ -139,7 +139,8 @@ def field_value_from_arg(arg: str, field: attrs.Attribute) -> Any:
             except ValueError:
                 pass
 
-    raise TypeError(f"Argument '{arg}' cannot be parsed by converters for field {field}")
+    msg = f"Argument '{arg}' cannot be parsed by converters for field {field}"
+    raise TypeError(msg)
 
 
 def transform_growl_args(_, fields: list[attrs.Attribute]):
@@ -148,7 +149,8 @@ def transform_growl_args(_, fields: list[attrs.Attribute]):
     for f in fields:
         attr_type = f.type
         if not attr_type:
-            raise ValueError("Attribute type must be defined")
+            msg = "Attribute type must be defined"
+            raise ValueError(msg)
 
         new_field = f
 
@@ -185,9 +187,8 @@ class GrowlArgs(attrs.AttrsInstance):
         returning them in the second tuple output.
         """
         if not (attrs.has(cls) and attrs.fields(cls)):
-            raise TypeError(
-                f"Expected an attrs class with at least one field attribute; got '{cls}'"
-            )
+            msg = f"Expected an attrs class with at least one field attribute; got '{cls}'"
+            raise TypeError(msg)
         if next(iter(argv), None) == getattr(cls, "command", _MISSING):
             argv = argv[1:]
 
@@ -223,7 +224,8 @@ class GrowlArgs(attrs.AttrsInstance):
         for field in attrs.fields(self):
             flag = field.metadata.get("flag")
             if not flag:
-                raise ValueError(f"Argument flag not defined for '{field.name}': {field.metadata=}")
+                msg = f"Argument flag not defined for '{field.name}': {field.metadata=}"
+                raise ValueError(msg)
 
             value = getattr(self, field.name)
             if remove_defaults and value == field.default:
