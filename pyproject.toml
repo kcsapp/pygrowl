@@ -61,6 +61,7 @@ extend-select = [
     "F",
     "I",
     "INP",
+    "PERF",
     "PTH",
 ]
 
