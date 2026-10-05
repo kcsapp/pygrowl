@@ -397,7 +397,7 @@ def output_as_json(options: list[ParsedOption], output: str | None):
 
     text = json.dumps(dicts, indent=2)
     if output:
-        with open(output, "w") as f:
+        with Path(output).open("w") as f:
             f.write(text)
         print(f"Wrote {len(options)} options to {output}", file=sys.stderr)
     else:
@@ -513,7 +513,7 @@ def output_as_python(
 
     text = "\n".join(segments) + "\n"
     if output:
-        with open(output, "w") as f:
+        with Path(output).open("w") as f:
             f.write(text)
         print(f"Wrote {len(options)} fields to CompasOptions in {output}", file=sys.stderr)
     else:

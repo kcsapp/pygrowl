@@ -7,10 +7,10 @@ image otherwise, and generates the selected plot from the data defined in the
 """
 
 import logging
-import os
 import sys
 from argparse import ArgumentParser
 from datetime import UTC, datetime
+from pathlib import Path
 
 import growl.io as gio
 import growl.plot as gplt
@@ -102,7 +102,8 @@ def main():
     args = parser.parse_args(argv)
 
     if args.rundir:
-        rundir = os.path.join(args.output, args.rundir, "Detailed_Output")
+        # TODO: Ensure argument parser returns Path type
+        rundir = Path(args.output) / args.rundir / "Detailed_Output"
     else:
         # always generate BSE-mode detailed output, and timestamp each run
         ts_suffix = int(datetime.now(UTC).timestamp())
@@ -117,10 +118,11 @@ def main():
         output = run_compas(options, args.input, args.output)
         print(f"**** COMPAS output ****\n======================={output.decode()}")
 
-        rundir = os.path.join(args.output, options.output_container, "Detailed_Output")
+        # TODO: Ensure argument parser returns Path type
+        rundir = Path(args.output) / options.output_container / "Detailed_Output"
 
     # load the data from the standard output file name
-    filename = os.path.join(rundir, f"{OUTPUT_PREFIX}_{args.run_index}.h5")
+    filename = str(rundir / f"{OUTPUT_PREFIX}_{args.run_index}.h5")
     raw_df = gio.load(filename, STANDARD_COLUMNS)
     event_df = gio.select_events(raw_df, EVENT_COLUMNS)
 
