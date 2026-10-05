@@ -1,5 +1,5 @@
 import abc
-from typing import Literal, TypeVar, get_args, get_origin, get_type_hints
+from typing import Any, ClassVar, Literal, TypeVar, get_args, get_origin, get_type_hints
 
 T = TypeVar("T")
 
@@ -26,7 +26,7 @@ class TypedArgConverter[T](metaclass=abc.ABCMeta):
 
 
 class Singleton(type):
-    _instances = {}
+    _instances: ClassVar[dict[type, Any]] = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
@@ -35,8 +35,8 @@ class Singleton(type):
 
 
 class ArgConverter(metaclass=Singleton):
-    _cls_registry: dict[type, type[TypedArgConverter]] = {}
-    _inst_registry: dict[type, TypedArgConverter | None] = {}
+    _cls_registry: ClassVar[dict[type, type[TypedArgConverter]]] = {}
+    _inst_registry: ClassVar[dict[type, TypedArgConverter | None]] = {}
 
     def __call__(self, converter_cls: type[TypedArgConverter]) -> type[TypedArgConverter]:
         key: type = get_type_hints(converter_cls.to_arg)["value"]
