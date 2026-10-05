@@ -59,6 +59,7 @@ extend-select = [
     "E",
     "F",
     "I",
+    "PTH",
 ]
 
 [tool.pyproject-fmt]
