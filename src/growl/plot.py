@@ -74,7 +74,7 @@ def plot_stellar_masses(lazy_df: pl.LazyFrame, lazy_events: pl.LazyFrame):
         xytext=(3.4, 18),
         fontsize=9,
         ha="center",
-        arrowprops=dict(arrowstyle="->", color="grey", lw=1),
+        arrowprops={"arrowstyle": "->", "color": "grey", "lw": 1},
     )
     ax.annotate(
         "common\nenvelope",
@@ -82,7 +82,7 @@ def plot_stellar_masses(lazy_df: pl.LazyFrame, lazy_events: pl.LazyFrame):
         xytext=(6.9, 12),
         fontsize=9,
         ha="center",
-        arrowprops=dict(arrowstyle="->", color="grey", lw=1),
+        arrowprops={"arrowstyle": "->", "color": "grey", "lw": 1},
     )
 
     ax.set_xlabel("Time [Myr]")
@@ -178,7 +178,7 @@ def plot_orbit_parameters(lazy_df: pl.LazyFrame, lazy_events: pl.LazyFrame):
         xytext=(3.2, 1500),
         fontsize=9,
         ha="center",
-        arrowprops=dict(arrowstyle="->", color="grey", lw=1),
+        arrowprops={"arrowstyle": "->", "color": "grey", "lw": 1},
     )
     axes[0].annotate(
         "common envelope\ncrushes the orbit",
@@ -186,7 +186,7 @@ def plot_orbit_parameters(lazy_df: pl.LazyFrame, lazy_events: pl.LazyFrame):
         xytext=(5.3, 25),
         fontsize=9,
         ha="center",
-        arrowprops=dict(arrowstyle="->", color="grey", lw=1),
+        arrowprops={"arrowstyle": "->", "color": "grey", "lw": 1},
     )
 
     plt.tight_layout()
@@ -233,7 +233,7 @@ def plot_hr_diagram(lazy_df: pl.LazyFrame, lazy_events: pl.LazyFrame):
         xytext=(9000, 6),
         fontsize=9,
         ha="center",
-        arrowprops=dict(arrowstyle="->", color="grey", lw=1),
+        arrowprops={"arrowstyle": "->", "color": "grey", "lw": 1},
     )
 
     ax.set_xscale("log")
@@ -351,7 +351,7 @@ def plot_summary(lazy_df: pl.LazyFrame, lazy_events: pl.LazyFrame):
         xytext=(4.5, 14),
         fontsize=9,
         ha="center",
-        arrowprops=dict(arrowstyle="->", color="grey", lw=1),
+        arrowprops={"arrowstyle": "->", "color": "grey", "lw": 1},
     )
     axes[0].annotate(
         "common\nenvelope",
@@ -359,7 +359,7 @@ def plot_summary(lazy_df: pl.LazyFrame, lazy_events: pl.LazyFrame):
         xytext=(6.9, 8),
         fontsize=9,
         ha="center",
-        arrowprops=dict(arrowstyle="->", color="grey", lw=1),
+        arrowprops={"arrowstyle": "->", "color": "grey", "lw": 1},
     )
 
     plt.tight_layout()

@@ -1,5 +1,5 @@
 import abc
-from typing import Generic, Literal, TypeVar, get_args, get_origin, get_type_hints
+from typing import Any, ClassVar, Literal, TypeVar, get_args, get_origin, get_type_hints
 
 T = TypeVar("T")
 
@@ -14,7 +14,7 @@ def satisfies_type(target: TypeVar | type, test: type) -> bool:
     return True
 
 
-class TypedArgConverter(Generic[T], metaclass=abc.ABCMeta):
+class TypedArgConverter[T](metaclass=abc.ABCMeta):
     def __init__(self, *converters: "TypedArgConverter"):
         self._converters = converters
 
@@ -26,17 +26,17 @@ class TypedArgConverter(Generic[T], metaclass=abc.ABCMeta):
 
 
 class Singleton(type):
-    _instances = {}
+    _instances: ClassVar[dict[type, Any]] = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
 class ArgConverter(metaclass=Singleton):
-    _cls_registry: dict[type, type[TypedArgConverter]] = {}
-    _inst_registry: dict[type, TypedArgConverter | None] = {}
+    _cls_registry: ClassVar[dict[type, type[TypedArgConverter]]] = {}
+    _inst_registry: ClassVar[dict[type, TypedArgConverter | None]] = {}
 
     def __call__(self, converter_cls: type[TypedArgConverter]) -> type[TypedArgConverter]:
         key: type = get_type_hints(converter_cls.to_arg)["value"]
