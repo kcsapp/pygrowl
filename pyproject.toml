@@ -54,7 +54,12 @@ dev = [
 line-length = 100
 
 [tool.ruff.lint]
-extend-select = [ "E", "F", "I" ]
+# https://docs.astral.sh/ruff/rules/
+extend-select = [
+    "E",
+    "F",
+    "I",
+]
 
 [tool.pyproject-fmt]
 indent = 4
