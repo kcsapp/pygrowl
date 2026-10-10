@@ -57,6 +57,7 @@ line-length = 100
 # https://docs.astral.sh/ruff/rules/
 extend-select = [
     "E",
+    "EM",
     "F",
     "I",
     "INP",

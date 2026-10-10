@@ -24,7 +24,8 @@ class BoolArgConverter(TypedArgConverter[bool]):
         elif arg in self._FALSES:
             return False
         else:
-            raise ValueError(f"Invalid boolean representation: '{arg}'")
+            msg = f"Invalid boolean representation: '{arg}'"
+            raise ValueError(msg)
 
 
 @arg_converter

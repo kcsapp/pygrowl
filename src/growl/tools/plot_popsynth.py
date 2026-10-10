@@ -96,7 +96,8 @@ def main():
     full_args = sys.argv[1:]
     for arg in full_args:
         if arg in FIXED_ARGS:
-            raise ValueError(f"Argument '{arg}' is fixed by this script")
+            msg = f"Argument '{arg}' is fixed by this script"
+            raise ValueError(msg)
 
     options, argv = CompasOptions.from_argv(full_args)
     args = parser.parse_args(argv)
@@ -139,7 +140,8 @@ def main():
         case "summary":
             gplt.plot_summary(raw_df, event_df)
         case other:
-            raise ValueError(f"Invalid plot type: '{other}'")
+            msg = f"Invalid plot type: '{other}'"
+            raise ValueError(msg)
 
 
 if __name__ == "__main__":

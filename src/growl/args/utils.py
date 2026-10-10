@@ -61,10 +61,11 @@ def interpret_as_range[NumericT: (int, float)](
             min_increment = max_inc
 
     if min_increment < min_interval:
-        raise ValueError(
+        msg = (
             "Input iterable is inconsistent; the smallest increment these values can be drawn "
             f"from, {min_increment}, is smaller than the minimum interval found, {min_interval}"
         )
+        raise ValueError(msg)
 
     count = int((rng_max - rng_min + min_increment) // min_increment)
 
