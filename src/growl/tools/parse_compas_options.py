@@ -508,8 +508,7 @@ def output_as_python(
     options: list[ParsedOption], output: str | None, line_length: int = DEFAULT_LINE_LENGTH
 ):
     segments = [PY_HEADER]
-    for option in options:
-        segments.append(build_field(option, line_length))
+    segments.extend(build_field(opt, line_length) for opt in options)
 
     text = "\n".join(segments) + "\n"
     if output:
